@@ -26,14 +26,6 @@ export default defineConfig({
     sourcemap: true,
     // 资源内联限制
     chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      external: ['@supabase/supabase-js'],
-      output: {
-        globals: {
-          '@supabase/supabase-js': 'supabase'
-        }
-      }
-    }
   },
   // 定义全局常量
   define: {

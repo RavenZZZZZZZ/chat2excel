@@ -11,7 +11,6 @@
 //
 // ==============================================================================
 
-// @ts-ignore - Supabase types may not be installed
 import { createClient } from '@supabase/supabase-js';
 
 /**
