@@ -6,16 +6,9 @@
 //
 // ==============================================================================
 
-import { NextResponse } from 'next/server';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
-// CORS 头
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-export default async function handler() {
+export default async function handler(_req: VercelRequest, res: VercelResponse) {
   const health = {
     status: 'ok',
     message: 'Chat2Excel API is running',
@@ -28,7 +21,7 @@ export default async function handler() {
     }
   };
 
-  return NextResponse.json(health, {
-    headers: corsHeaders
-  });
+  return res.status(200)
+    .setHeader('Access-Control-Allow-Origin', '*')
+    .json(health);
 }

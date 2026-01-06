@@ -6,46 +6,36 @@
 //
 // ==============================================================================
 
-import { NextRequest, NextResponse } from 'next/server';
+import { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
 
 // 配置
 const DOC2X_API_BASE = process.env.DOC2X_API_BASE_URL || 'https://v2.doc2x.noedgeai.com';
 const DOC2X_API_KEY = process.env.DOC2X_API_KEY;
 
-// CORS 头
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
-
-export default async function handler(req: NextRequest) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 处理 OPTIONS 预检请求
   if (req.method === 'OPTIONS') {
-    return new NextResponse(null, { headers: corsHeaders });
+    return res.status(200).setHeader('Access-Control-Allow-Origin', '*').send('');
   }
 
   // 只允许 GET 请求
   if (req.method !== 'GET') {
-    return NextResponse.json(
-      { code: 'error', error: 'Method not allowed' },
-      { status: 405, headers: corsHeaders }
-    );
+    return res.status(405)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .json({ code: 'error', error: 'Method not allowed' });
   }
 
   try {
     // 获取查询参数
-    const { searchParams } = new URL(req.url);
-    const uid = searchParams.get('uid');
+    const uid = req.query.uid;
 
     // 验证 uid 参数
-    if (!uid) {
+    if (!uid || typeof uid !== 'string') {
       console.error('❌ 错误: 缺少 uid 参数');
-      return NextResponse.json(
-        { code: 'error', error: 'Missing uid parameter' },
-        { status: 400, headers: corsHeaders }
-      );
+      return res.status(400)
+        .setHeader('Access-Control-Allow-Origin', '*')
+        .json({ code: 'error', error: 'Missing uid parameter' });
     }
 
     console.log('🔍 查询状态:', uid);
@@ -68,9 +58,9 @@ export default async function handler(req: NextRequest) {
       status: response.data.data?.status
     });
 
-    return NextResponse.json(response.data, {
-      headers: corsHeaders
-    });
+    return res.status(200)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .json(response.data);
 
   } catch (error: any) {
     console.error('❌ 查询状态失败:', error.message);
@@ -78,16 +68,14 @@ export default async function handler(req: NextRequest) {
     // 处理 Axios 错误响应
     if (error.response) {
       console.error('❌ API 错误响应:', error.response.data);
-      return NextResponse.json(error.response.data, {
-        status: error.response.status,
-        headers: corsHeaders
-      });
+      return res.status(error.response.status)
+        .setHeader('Access-Control-Allow-Origin', '*')
+        .json(error.response.data);
     }
 
     // 通用错误响应
-    return NextResponse.json(
-      { code: 'error', error: error.message || 'Status check failed' },
-      { status: 500, headers: corsHeaders }
-    );
+    return res.status(500)
+      .setHeader('Access-Control-Allow-Origin', '*')
+      .json({ code: 'error', error: error.message || 'Status check failed' });
   }
 }
