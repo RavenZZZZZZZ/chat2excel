@@ -187,3 +187,12 @@ MIT
 
 **部署平台**: [Vercel](https://vercel.com)  
 **OCR 服务**: [Doc2X](https://doc2x.noedgeai.com)
+
+# 🚀 Chat2Excel - 部署状态
+
+✅ **已部署到 Vercel**
+
+- 前端: React + Vite
+- 后端: Vercel Serverless Functions
+- 状态: 生产环境
+
