@@ -69,3 +69,4 @@ coverage
 
 # Vite 缓存目录
 .vite
+.vercel

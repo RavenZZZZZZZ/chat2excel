@@ -17,24 +17,9 @@ if (ENABLE_SENTRY) {
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: import.meta.env.VITE_APP_ENV || 'production',
-    integrations: [
-      new Sentry.BrowserTracing({
-        tracingOrigins: [
-          'localhost',
-          'your-domain.vercel.app',
-          /^\//,
-        ],
-      }),
-      new Sentry.Replay({
-        maskAllText: false,
-        blockAllMedia: false,
-      }),
-    ],
+    integrations: [],
     // 性能监控采样率
-    tracesSampleRate: 0.1, // 10% 的请求用于性能监控
-    // 回放采样率
-    replaysSessionSampleRate: 0.1, // 10% 的正常会话
-    replaysOnErrorSampleRate: 1.0, // 100% 的错误会话
+    tracesSampleRate: 0.1,
     // 过滤敏感数据
     beforeSend(event) {
       // 移除敏感的请求头

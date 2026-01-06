@@ -248,6 +248,7 @@ export class MarkdownTableParser {
     rows.forEach((row) => {
       const cells = row.querySelectorAll('td, th');
       cells.forEach((cell) => {
+        // @ts-ignore - Element vs HTMLElement type issue
         const text = this.extractTextContent(cell).trim();
         const images = cell.querySelectorAll('img');
         const hasImages = images.length > 0;

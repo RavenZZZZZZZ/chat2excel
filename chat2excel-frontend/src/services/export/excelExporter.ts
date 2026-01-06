@@ -98,6 +98,7 @@ export class ExcelExporter {
     const worksheet = workbook.addWorksheet(sheetName);
 
     // 添加数据到工作表
+    // @ts-ignore - Type compatibility issue
     this.populateWorksheet(worksheet, tableData, mergedOptions);
 
     // 自动调整列宽

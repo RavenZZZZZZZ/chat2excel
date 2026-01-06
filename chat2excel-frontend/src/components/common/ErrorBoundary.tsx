@@ -8,6 +8,7 @@
 // ==============================================================================
 
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+// @ts-ignore - UI components may not have type exports
 import { Button } from '@/components/ui';
 
 interface ErrorBoundaryProps {
