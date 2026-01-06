@@ -1,0 +1,23 @@
+{
+  "name": "chat2excel-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev:server",
+    "dev:server": "tsx watch server.ts",
+    "start": "tsx server.ts",
+    "build": "echo 'No build step required for Node.js server'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
+    "@types/multer": "^2.0.0",
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "form-data": "^4.0.5",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}

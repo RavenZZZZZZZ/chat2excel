@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MarkdownTableParser Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    h2 {
+      color: #333;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+    pre {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+    }
+    .success {
+      color: #28a745;
+      font-weight: bold;
+    }
+    .error {
+      color: #dc3545;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 MarkdownTableParser 测试</h1>
+
+  <div class="section">
+    <h2>测试数据 (HTML Table)</h2>
+    <button onclick="testHTMLTable()">测试 HTML 表格解析</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    // 模拟 MarkdownTableParser 的核心逻辑
+    class MarkdownTableParser {
+      parse(markdown) {
+        if (markdown.includes('<table>')) {
+          return this.parseHTMLTable(markdown);
+        }
+        return { success: false, error: '未检测到表格' };
+      }
+
+      parseHTMLTable(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const table = doc.querySelector('table');
+
+        if (!table) {
+          return { success: false, error: '未找到 table 标签' };
+        }
+
+        const rows = [];
+        const rowsHTML = table.querySelectorAll('tr');
+
+        rowsHTML.forEach((tr, rowIndex) => {
+          const cells = [];
+          const cellsHTML = tr.querySelectorAll('td, th');
+
+          cellsHTML.forEach((td) => {
+            const cellElement = td;
+            const value = cellElement.innerHTML.trim();
+            const colSpan = cellElement.colSpan > 1 ? cellElement.colSpan : undefined;
+            const rowSpan = cellElement.rowSpan > 1 ? cellElement.rowSpan : undefined;
+
+            const cell = { value };
+            if (colSpan) cell.colSpan = colSpan;
+            if (rowSpan) cell.rowSpan = rowSpan;
+
+            cells.push(cell);
+          });
+
+          rows.push({ cells });
+        });
+
+        return {
+          success: true,
+          data: { rows },
+          confidence: 1.0
+        };
+      }
+    }
+
+    const parser = new MarkdownTableParser();
+
+    // 示例数据（简化版）
+    const sampleHTML = `
+    <table>
+      <tr>
+        <td colspan="4">工具栏</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>A</td>
+        <td>B</td>
+        <td>C</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>序号</td>
+        <td>专线</td>
+        <td>专线图片</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>1</td>
+        <td>临沂江苏</td>
+        <td><img src="F:\\专线\\临沂江苏.jpg" width="300" height="60"></td>
+      </tr>
+    </table>
+    `;
+
+    function testHTMLTable() {
+      const resultDiv = document.getElementById('result');
+      const result = parser.parse(sampleHTML);
+
+      if (result.success) {
+        let html = '<div class="success">✅ 解析成功!</div>';
+        html += `<p>识别出 ${result.data.rows.length} 行数据</p>`;
+        html += '<table>';
+
+        result.data.rows.forEach((row, rowIndex) => {
+          html += '<tr>';
+          row.cells.forEach(cell => {
+            const attrs = [];
+            if (cell.colSpan) attrs.push(`colspan="${cell.colSpan}"`);
+            if (cell.rowSpan) attrs.push(`rowspan="${cell.rowSpan}"`);
+
+            html += `<td ${attrs.join(' ')}>${cell.value}</td>`;
+          });
+          html += '</tr>';
+        });
+
+        html += '</table>';
+        resultDiv.innerHTML = html;
+      } else {
+        resultDiv.innerHTML = `<div class="error">❌ 解析失败: ${result.error}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
