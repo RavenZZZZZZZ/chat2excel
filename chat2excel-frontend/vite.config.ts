@@ -24,34 +24,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    // 生产环境代码分割优化
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // React 核心
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          // UI 组件库
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-label',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-          ],
-          // 工具库
-          'utils': [
-            'zustand',
-            '@tanstack/react-query',
-            'exceljs',
-            'file-saver',
-          ],
-        },
-      },
-    },
     // 资源内联限制
     chunkSizeWarningLimit: 1000,
   },
