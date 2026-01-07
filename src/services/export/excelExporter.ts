@@ -188,7 +188,7 @@ export class ExcelExporter {
       const excelRow = worksheet.addRow(row.cells.map((cell) => cell.value || ''));
 
       // 应用样式
-      excelRow.eachCell((cell, colNumber) => {
+      excelRow.eachCell((cell) => {
         // 第一行作为表头
         if (rowIndex === 0) {
           Object.assign(cell, headerStyle);
@@ -201,13 +201,27 @@ export class ExcelExporter {
         } else {
           Object.assign(cell, dataCellStyle);
         }
+      });
 
-        // 处理合并单元格
-        const tableCell = row.cells[colNumber - 1];
-        if (tableCell.rowSpan && tableCell.rowSpan > 1) {
+      // 处理合并单元格（在样式应用之后，避免重复合并）
+      row.cells.forEach((tableCell, colIndex) => {
+        const colNumber = colIndex + 1;
+
+        // 如果同时有 rowSpan 和 colSpan，合并为一个区域
+        if (tableCell.rowSpan && tableCell.rowSpan > 1 && tableCell.colSpan && tableCell.colSpan > 1) {
+          worksheet.mergeCells(
+            rowIndex + 1,
+            colNumber,
+            rowIndex + tableCell.rowSpan,
+            colNumber + tableCell.colSpan - 1
+          );
+        }
+        // 只有行合并
+        else if (tableCell.rowSpan && tableCell.rowSpan > 1) {
           worksheet.mergeCells(rowIndex + 1, colNumber, rowIndex + tableCell.rowSpan, colNumber);
         }
-        if (tableCell.colSpan && tableCell.colSpan > 1) {
+        // 只有列合并
+        else if (tableCell.colSpan && tableCell.colSpan > 1) {
           worksheet.mergeCells(rowIndex + 1, colNumber, rowIndex + 1, colNumber + tableCell.colSpan - 1);
         }
       });
