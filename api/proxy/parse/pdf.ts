@@ -25,6 +25,27 @@ const corsHeaders = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // 记录请求信息（用于调试）
+  console.log('📥 收到请求:', {
+    method: req.method,
+    url: req.url,
+    headers: {
+      'user-agent': req.headers['user-agent'],
+      'referer': req.headers['referer'],
+      'origin': req.headers['origin'],
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+      'x-vercel-forwarded-for': req.headers['x-vercel-forwarded-for'],
+    },
+    timestamp: new Date().toISOString(),
+  });
+
+  // 检查环境变量
+  console.log('🔑 环境变量检查:', {
+    hasApiKey: !!DOC2X_API_KEY,
+    apiKeyPrefix: DOC2X_API_KEY ? `${DOC2X_API_KEY.substring(0, 7)}...` : 'undefined',
+    apiBase: DOC2X_API_BASE,
+  });
+
   // 处理 OPTIONS 预检请求
   if (req.method === 'OPTIONS') {
     return res.status(200).setHeader('Access-Control-Allow-Origin', '*').send('');
@@ -80,24 +101,51 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 读取文件内容
     const buffer = fs.readFileSync(file.filepath);
 
-    console.log('📤 转发到 Doc2X API...');
+    console.log('📤 准备转发到 Doc2X API:', {
+      url: `${DOC2X_API_BASE}/api/v2/async/parse/img/layout`,
+      bufferSize: buffer.length,
+      contentType: file.mimetype,
+      hasApiKey: !!DOC2X_API_KEY,
+    });
 
     // 转发到 Doc2X API
-    const response = await axios.post(
-      `${DOC2X_API_BASE}/api/v2/async/parse/img/layout`,
-      buffer,
-      {
-        headers: {
-          'Authorization': `Bearer ${DOC2X_API_KEY}`,
-          'Content-Type': file.mimetype,
+    let response;
+    try {
+      response = await axios.post(
+        `${DOC2X_API_BASE}/api/v2/async/parse/img/layout`,
+        buffer,
+        {
+          headers: {
+            'Authorization': `Bearer ${DOC2X_API_KEY}`,
+            'Content-Type': file.mimetype,
+          },
+          timeout: 60000,
+          maxBodyLength: MAX_FILE_SIZE,
+          maxContentLength: MAX_FILE_SIZE,
+        }
+      );
+    } catch (axiosError: any) {
+      console.error('❌ Doc2X API 调用失败:', {
+        message: axiosError.message,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+        config: {
+          url: axiosError.config?.url,
+          headers: {
+            authorization: axiosError.config?.headers?.authorization ? `Bearer ${DOC2X_API_KEY?.substring(0, 7)}...` : 'missing',
+          },
         },
-        timeout: 60000,
-        maxBodyLength: MAX_FILE_SIZE,
-        maxContentLength: MAX_FILE_SIZE,
-      }
-    );
+      });
+      throw axiosError;
+    }
 
-    console.log('✅ Doc2X 上传响应:', response.data);
+    console.log('✅ Doc2X 上传响应:', {
+      status: response.status,
+      code: response.data?.code,
+      hasData: !!response.data?.data,
+      uid: response.data?.data?.uid,
+    });
 
     // 清理临时文件
     fs.unlinkSync(file.filepath);
