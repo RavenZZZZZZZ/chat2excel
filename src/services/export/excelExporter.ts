@@ -89,26 +89,56 @@ export class ExcelExporter {
    * @param options - 导出配置
    */
   async export(tableData: TableData, options: ExcelExportOptions = {}): Promise<void> {
+    console.log('📊 开始导出 Excel, options:', options);
+
+    // 验证输入数据
+    if (!tableData) {
+      throw new Error('表格数据为空');
+    }
+
+    if (!tableData.rows || !Array.isArray(tableData.rows) || tableData.rows.length === 0) {
+      throw new Error('表格数据格式错误：rows 为空或不是数组');
+    }
+
+    console.log(`📊 表格数据验证通过，共 ${tableData.rows.length} 行`);
+
     const mergedOptions = { ...this.defaultOptions, ...options };
     const fileName = options.fileName || 'table-export';
     const sheetName = options.sheetName || 'Sheet1';
 
-    // 创建工作簿
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet(sheetName);
+    try {
+      // 创建工作簿
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet(sheetName);
 
-    // 添加数据到工作表
-    // @ts-ignore - Type compatibility issue
-    this.populateWorksheet(worksheet, tableData, mergedOptions);
+      console.log('📝 开始填充工作表数据...');
+      // 添加数据到工作表
+      // @ts-ignore - Type compatibility issue
+      this.populateWorksheet(worksheet, tableData, mergedOptions);
 
-    // 自动调整列宽
-    if (mergedOptions.autoFitColumns) {
-      this.autoFitWorksheetColumns(worksheet, mergedOptions.minColumnWidth, mergedOptions.maxColumnWidth);
+      // 自动调整列宽
+      if (mergedOptions.autoFitColumns) {
+        console.log('📏 自动调整列宽...');
+        this.autoFitWorksheetColumns(worksheet, mergedOptions.minColumnWidth, mergedOptions.maxColumnWidth);
+      }
+
+      console.log('💾 生成 Excel 文件...');
+      // 生成文件并触发下载
+      const buffer = await workbook.xlsx.writeBuffer();
+
+      if (!buffer || buffer.byteLength === 0) {
+        throw new Error('生成的 Excel 文件为空');
+      }
+
+      console.log(`✅ Excel 文件生成成功，大小: ${buffer.byteLength} bytes`);
+      console.log(`📥 触发下载: ${fileName}.xlsx`);
+
+      this.downloadFile(buffer, `${fileName}.xlsx`);
+      console.log('✅ 导出完成');
+    } catch (error) {
+      console.error('❌ Excel 导出过程出错:', error);
+      throw error;
     }
-
-    // 生成文件并触发下载
-    const buffer = await workbook.xlsx.writeBuffer();
-    this.downloadFile(buffer, `${fileName}.xlsx`);
   }
 
   /**
@@ -214,21 +244,47 @@ export class ExcelExporter {
    * 触发文件下载
    */
   private downloadFile(buffer: ArrayBuffer, fileName: string): void {
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+    try {
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
 
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
+      // 检查浏览器是否支持 Blob
+      if (!(blob instanceof Blob)) {
+        throw new Error('浏览器不支持 Blob API');
+      }
 
-    document.body.appendChild(link);
-    link.click();
+      const url = window.URL.createObjectURL(blob);
 
-    // 清理
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+      if (!url) {
+        throw new Error('创建下载链接失败');
+      }
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+
+      // 某些浏览器需要将链接添加到 DOM 才能触发下载
+      document.body.appendChild(link);
+
+      // 尝试触发点击
+      try {
+        link.click();
+        console.log('✅ 下载链接已触发');
+      } catch (clickError) {
+        console.error('❌ 触发下载失败:', clickError);
+        throw new Error('浏览器阻止了下载，请检查弹出窗口设置');
+      }
+
+      // 清理
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error('❌ 文件下载失败:', error);
+      throw error;
+    }
   }
 }
 

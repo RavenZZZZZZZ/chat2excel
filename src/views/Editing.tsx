@@ -91,21 +91,39 @@ export default function Editing() {
    * 导出当前表格为 Excel
    */
   const handleExportExcel = async () => {
-    if (tableDataList.length === 0) return;
+    if (tableDataList.length === 0) {
+      alert('没有可导出的表格数据');
+      return;
+    }
 
     setIsExporting(true);
     try {
       const currentTable = tableDataList[currentTableIndex];
-      const fileName = `table-export-${currentTableIndex + 1}`;
 
+      // 验证表格数据
+      if (!currentTable || !currentTable.rows || currentTable.rows.length === 0) {
+        throw new Error('表格数据为空或格式错误');
+      }
+
+      const fileName = `table-export-${currentTableIndex + 1}-${Date.now()}`;
+
+      log.info('开始导出 Excel:', { fileName, rows: currentTable.rows.length });
       await excelExporter.export(currentTable, {
         fileName,
         sheetName: 'Sheet1',
       });
 
-      console.log('✅ Excel 导出成功');
+      log.info('✅ Excel 导出成功');
+      alert('✅ Excel 导出成功！');
     } catch (error) {
-      console.error('❌ Excel 导出失败:', error);
+      log.error('❌ Excel 导出失败:', error);
+
+      // 显示用户友好的错误信息
+      let errorMessage = '导出失败，请重试';
+      if (error instanceof Error) {
+        errorMessage = `导出失败: ${error.message}`;
+      }
+      alert(errorMessage);
     } finally {
       setIsExporting(false);
     }
