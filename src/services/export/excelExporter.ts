@@ -209,25 +209,65 @@ export class ExcelExporter {
       });
 
       // 处理合并单元格（在样式应用之后，避免重复合并）
+      // 使用 Set 来跟踪已经处理过的单元格，避免重复合并
+      const mergedCells = new Set<string>();
+
       row.cells.forEach((tableCell, colIndex) => {
         const colNumber = colIndex + 1;
 
+        // 生成单元格的唯一标识
+        const cellKey = `${rowIndex + 1}-${colNumber}`;
+
+        // 如果这个单元格已经被合并过，跳过
+        if (mergedCells.has(cellKey)) {
+          return;
+        }
+
         // 如果同时有 rowSpan 和 colSpan，合并为一个区域
         if (tableCell.rowSpan && tableCell.rowSpan > 1 && tableCell.colSpan && tableCell.colSpan > 1) {
-          worksheet.mergeCells(
-            rowIndex + 1,
-            colNumber,
-            rowIndex + tableCell.rowSpan,
-            colNumber + tableCell.colSpan - 1
-          );
+          try {
+            worksheet.mergeCells(
+              rowIndex + 1,
+              colNumber,
+              rowIndex + tableCell.rowSpan,
+              colNumber + tableCell.colSpan - 1
+            );
+
+            // 标记所有涉及的单元格为已合并
+            for (let r = 0; r < tableCell.rowSpan; r++) {
+              for (let c = 0; c < tableCell.colSpan; c++) {
+                mergedCells.add(`${rowIndex + 1 + r}-${colNumber + c}`);
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ 合并单元格失败（rowSpan + colSpan）:', error);
+          }
         }
         // 只有行合并
         else if (tableCell.rowSpan && tableCell.rowSpan > 1) {
-          worksheet.mergeCells(rowIndex + 1, colNumber, rowIndex + tableCell.rowSpan, colNumber);
+          try {
+            worksheet.mergeCells(rowIndex + 1, colNumber, rowIndex + tableCell.rowSpan, colNumber);
+
+            // 标记所有涉及的单元格为已合并
+            for (let r = 0; r < tableCell.rowSpan; r++) {
+              mergedCells.add(`${rowIndex + 1 + r}-${colNumber}`);
+            }
+          } catch (error) {
+            console.warn('⚠️ 合并单元格失败（rowSpan）:', error);
+          }
         }
         // 只有列合并
         else if (tableCell.colSpan && tableCell.colSpan > 1) {
-          worksheet.mergeCells(rowIndex + 1, colNumber, rowIndex + 1, colNumber + tableCell.colSpan - 1);
+          try {
+            worksheet.mergeCells(rowIndex + 1, colNumber, rowIndex + 1, colNumber + tableCell.colSpan - 1);
+
+            // 标记所有涉及的单元格为已合并
+            for (let c = 0; c < tableCell.colSpan; c++) {
+              mergedCells.add(`${rowIndex + 1}-${colNumber + c}`);
+            }
+          } catch (error) {
+            console.warn('⚠️ 合并单元格失败（colSpan）:', error);
+          }
         }
       });
     });
