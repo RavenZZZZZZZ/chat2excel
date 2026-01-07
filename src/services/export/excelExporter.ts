@@ -137,6 +137,11 @@ export class ExcelExporter {
       console.log('✅ 导出完成');
     } catch (error) {
       console.error('❌ Excel 导出过程出错:', error);
+      console.error('❌ 错误详细信息:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       throw error;
     }
   }
