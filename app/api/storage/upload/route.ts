@@ -53,15 +53,13 @@ export async function POST(request: NextRequest) {
     if (uploadError) {
       console.error('[Storage Upload] Upload failed:', {
         message: uploadError.message,
-        statusCode: uploadError.statusCode,
-        error: uploadError.error,
-        name: uploadError.name,
+        error: uploadError,
         bucket: bucketName,
         path: filePath,
         fileSize: buffer.length,
         contentType: file.type,
       });
-      throw new Error(`Supabase Storage error: ${uploadError.message} (${uploadError.statusCode})`);
+      throw new Error(`Supabase Storage error: ${uploadError.message}`);
     }
 
     // 获取公开 URL
