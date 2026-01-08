@@ -3,10 +3,10 @@
 // ==============================================================================
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase } from '../lib/supabase.js';
-import { cors } from '../middleware/cors.js';
-import { success, error } from '../lib/response.js';
-import { ValidationError } from '../lib/error.js';
+import { supabase } from '../lib/supabase';
+import { cors } from '../middleware/cors';
+import { success, error } from '../lib/response';
+import { ValidationError } from '../lib/error';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 处理 CORS
