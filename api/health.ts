@@ -3,7 +3,7 @@
 // ==============================================================================
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { cors } from '../middleware/cors.js';
+import { cors } from '../../shared/api-modules/middleware/cors.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 处理 CORS
