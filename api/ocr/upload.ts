@@ -6,9 +6,9 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
 import formidable from 'formidable';
 import fs from 'fs';
-import { cors } from '../middleware/cors';
-import { DOC2X_UPLOAD_ENDPOINT, DOC2X_API_KEY } from '../lib/doc2x';
-import { ValidationError } from '../lib/error';
+import { cors } from '../middleware/cors.js';
+import { DOC2X_UPLOAD_ENDPOINT, DOC2X_API_KEY } from '../lib/doc2x.js';
+import { ValidationError } from '../lib/error.js';
 
 export const config = {
   api: {
