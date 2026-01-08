@@ -9,6 +9,8 @@ const nextConfig = {
     SUPABASE_SERVICE_ROLE_KEY: 'fake-key',
     // DOC2X_API_KEY 不能设置假值，否则会覆盖 Vercel 的真实环境变量
   },
+  // 禁用静态资源缓存以便开发时快速测试
+  generateEtags: false,
 }
 
 export default nextConfig
