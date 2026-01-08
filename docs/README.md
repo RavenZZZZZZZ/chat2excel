@@ -8,6 +8,10 @@ Welcome to the Chat2Excel documentation. This directory contains all project doc
 - [QUICK_START.md](./QUICK_START.md) - Quick start guide (3 steps to get your API keys)
 - [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Complete Supabase configuration guide
 
+### 📖 API Documentation
+- [API.md](./API.md) - Complete API endpoint documentation with examples
+- [NEXTJS_MIGRATION.md](./NEXTJS_MIGRATION.md) - Next.js migration guide and technical details
+
 ### 🏗️ Architecture & Design
 - [DATABASE_SCHEMA_DESIGN.md](./DATABASE_SCHEMA_DESIGN.md) - Database schema and structure
 - [UPLOAD_FEATURE_SPEC.md](./UPLOAD_FEATURE_SPEC.md) - Upload feature specifications

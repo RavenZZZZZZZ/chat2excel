@@ -31,7 +31,7 @@
 - React i18next (国际化)
 
 **后端**:
-- Vercel Serverless Functions
+- Next.js 16.1.1 (API Routes)
 - Supabase (数据库 + 存储)
 - Doc2X API (OCR 服务)
 
@@ -39,13 +39,18 @@
 
 ```
 chat2excel/
-├── api/                      # Vercel Serverless Functions (后端)
-│   ├── lib/                 # 核心库
-│   ├── middleware/          # 中间件
-│   ├── ocr/                 # OCR 端点
-│   ├── storage/             # 文件存储端点
-│   └── tasks/               # 任务管理端点
-├── src/                      # React 前端源代码
+├── app/                      # Next.js App Router
+│   └── api/                 # API 路由
+│       ├── health/          # 健康检查
+│       ├── tasks/           # 任务管理
+│       ├── storage/         # 文件存储
+│       └── ocr/             # OCR 识别
+├── lib/                      # 共享库
+│   ├── supabase.ts         # Supabase 客户端
+│   ├── doc2x.ts            # Doc2X API 配置
+│   ├── errors.ts           # 自定义错误
+│   └── cors.ts             # CORS 处理
+├── src/                      # React 前端源代码 (Vite)
 │   ├── components/          # React 组件
 │   ├── locales/             # 国际化翻译文件
 │   ├── services/            # API 服务
@@ -54,6 +59,7 @@ chat2excel/
 │   └── views/               # 页面组件
 ├── docs/                     # 项目文档
 ├── public/                   # 静态资源
+├── next.config.mjs           # Next.js 配置
 └── package.json              # 项目依赖
 ```
 
