@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
 
     // 验证文件类型 (仅支持 Doc2X API 兼容的格式)
     // Doc2X API 文档: 请求体为 img(jpg/png) 的二进制
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    // 注意: 浏览器对 .jpg/.jpeg 文件统一返回 'image/jpeg' (标准 MIME 类型)
+    const allowedTypes = ['image/jpeg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       console.error('[OCR Upload] Unsupported file type:', file.type);
       return NextResponse.json({

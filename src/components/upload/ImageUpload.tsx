@@ -148,7 +148,7 @@ export function ImageUpload({
       if (rejection.errors[0].code === 'file-too-large') {
         setError(`文件大小超过限制（最大 ${Math.round(maxSize / 1024 / 1024)}MB）`);
       } else if (rejection.errors[0].code === 'file-invalid-type') {
-        setError('不支持的文件格式，请上传 JPG 或 PNG 图片');
+        setError('不支持的文件格式，请上传 JPG、JPEG 或 PNG 图片');
       } else {
         setError('文件上传失败，请重试');
       }
@@ -255,7 +255,7 @@ export function ImageUpload({
             {isUploading ? '正在上传...' : isDragActive ? '释放鼠标上传' : '拖拽图片到这里，或点击选择'}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            支持 JPG、PNG 格式，最大 {Math.round(maxSize / 1024 / 1024)}MB
+            支持 JPG、JPEG、PNG 格式，最大 {Math.round(maxSize / 1024 / 1024)}MB
           </p>
         </div>
 
