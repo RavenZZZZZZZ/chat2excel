@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { TablePreview } from '@/components/table';
 import { excelExporter } from '@/services/export';
 import { useUploadStore } from '@/stores/useUploadStore';
@@ -27,6 +28,7 @@ interface TaskWithParseResult {
 }
 
 export default function Editing() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tableDataList, setTableDataList] = useState<TableData[]>([]);
   const [taskList, setTaskList] = useState<TaskWithParseResult[]>([]);
@@ -92,7 +94,7 @@ export default function Editing() {
    */
   const handleExportExcel = async () => {
     if (tableDataList.length === 0) {
-      alert('没有可导出的表格数据');
+      alert(t('errors.unknown'));
       return;
     }
 
@@ -102,7 +104,7 @@ export default function Editing() {
 
       // 验证表格数据
       if (!currentTable || !currentTable.rows || currentTable.rows.length === 0) {
-        throw new Error('表格数据为空或格式错误');
+        throw new Error(t('errors.parseFailed'));
       }
 
       const fileName = `table-export-${currentTableIndex + 1}-${Date.now()}`;
@@ -114,14 +116,14 @@ export default function Editing() {
       });
 
       log.info('✅ Excel 导出成功');
-      alert('✅ Excel 导出成功！');
+      alert(`✅ ${t('export.success')}！`);
     } catch (error) {
       log.error('❌ Excel 导出失败:', error);
 
       // 显示用户友好的错误信息
-      let errorMessage = '导出失败，请重试';
+      let errorMessage = t('errors.tryAgain');
       if (error instanceof Error) {
-        errorMessage = `导出失败: ${error.message}`;
+        errorMessage = `${t('export.failed')}: ${error.message}`;
       }
       alert(errorMessage);
     } finally {
@@ -152,7 +154,7 @@ export default function Editing() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">正在加载数据...</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -167,14 +169,21 @@ export default function Editing() {
         {/* 页面标题 */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            编辑表格
+            {t('editing.title')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            表格 {currentTableIndex + 1} / {tableDataList.length}
+            {t('editing.currentTable', {
+              current: currentTableIndex + 1,
+              total: tableDataList.length
+            })}
             {currentTask && (
               <span className="ml-4 text-sm">
-                文件名: {currentTask.task.file.name} |
-                置信度: {currentTask.parseResult.confidence ? `${(currentTask.parseResult.confidence * 100).toFixed(1)}%` : 'N/A'}
+                {currentTask.task.file.name} |
+                {t('recognizing.result.confidence', {
+                  confidence: currentTask.parseResult.confidence
+                    ? `${(currentTask.parseResult.confidence * 100).toFixed(1)}`
+                    : 'N/A'
+                })}
               </span>
             )}
           </p>
@@ -190,7 +199,7 @@ export default function Editing() {
                 disabled={currentTableIndex === 0}
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
               >
-                上一个
+                {t('editing.previous')}
               </button>
               <span className="text-gray-600 dark:text-gray-400">
                 {currentTableIndex + 1} / {tableDataList.length}
@@ -200,7 +209,7 @@ export default function Editing() {
                 disabled={currentTableIndex === tableDataList.length - 1}
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
               >
-                下一个
+                {t('editing.next')}
               </button>
             </div>
           )}
@@ -211,14 +220,14 @@ export default function Editing() {
               onClick={() => navigate('/')}
               className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
             >
-              返回首页
+              {t('common.back')}
             </button>
 
             <button
               onClick={() => setShowOriginalImage(!showOriginalImage)}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
             >
-              {showOriginalImage ? '隐藏原图' : '显示原图'}
+              {showOriginalImage ? t('editing.hideImage') : t('editing.showImage')}
             </button>
 
             {tableDataList.length > 1 && (
@@ -227,7 +236,7 @@ export default function Editing() {
                 disabled={isExporting}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isExporting ? '导出中...' : '导出全部'}
+                {isExporting ? t('export.downloading') : t('editing.exportAll')}
               </button>
             )}
 
@@ -236,7 +245,7 @@ export default function Editing() {
               disabled={isExporting}
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isExporting ? '导出中...' : '导出 Excel'}
+              {isExporting ? t('export.downloading') : t('editing.exportCurrent')}
             </button>
           </div>
         </div>
@@ -247,7 +256,7 @@ export default function Editing() {
           {showOriginalImage && currentTask && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                原始图片
+                {t('editing.originalImage')}
               </h2>
               <div className="relative">
                 <img
@@ -256,12 +265,16 @@ export default function Editing() {
                   className="w-full h-auto rounded-lg border border-gray-300 dark:border-gray-600"
                 />
                 <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                  <p><strong>文件信息:</strong></p>
+                  <p><strong>File Info:</strong></p>
                   <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>文件名: {currentTask.task.file.name}</li>
-                    <li>文件大小: {(currentTask.task.file.size / 1024).toFixed(2)} KB</li>
-                    <li>类型: {currentTask.task.file.type}</li>
-                    <li>置信度: {currentTask.parseResult.confidence ? `${(currentTask.parseResult.confidence * 100).toFixed(1)}%` : 'N/A'}</li>
+                    <li>{currentTask.task.file.name}</li>
+                    <li>{(currentTask.task.file.size / 1024).toFixed(2)} KB</li>
+                    <li>{currentTask.task.file.type}</li>
+                    <li>{t('recognizing.result.confidence', {
+                      confidence: currentTask.parseResult.confidence
+                        ? `${(currentTask.parseResult.confidence * 100).toFixed(1)}%`
+                        : 'N/A'
+                    })}</li>
                   </ul>
                 </div>
               </div>
@@ -271,7 +284,7 @@ export default function Editing() {
           {/* 表格预览 */}
           <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 ${showOriginalImage ? '' : 'lg:col-span-2'}`}>
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              解析结果
+              {t('editing.parsedResult')}
             </h2>
             <TablePreview
               tableData={currentTable}

@@ -12,6 +12,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ImageUpload, ImagePreview, type UploadImageFile } from '@/components/upload';
 import { useUploadStore } from '@/stores/useUploadStore';
 import { createLogger } from '@/lib/logger';
@@ -22,6 +23,7 @@ const log = createLogger('Home');
  * 首页组件
  */
 export default function Home() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [uploadedFiles, setUploadedFiles] = useState<UploadImageFile[]>([]);
   const { setUploadedFiles: setUploadedFilesToStore } = useUploadStore();
@@ -54,13 +56,13 @@ export default function Home() {
         {/* 页面标题区域 */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Chat2Excel - 表格OCR识别
+            {t('home.title')}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-2">
-            上传表格图片，自动识别并导出Excel
+            {t('home.subtitle')}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500">
-            支持 JPG、PNG、WEBP、GIF 格式，单张图片最大 10MB
+            {t('home.dropZone.subtitle')}
           </p>
         </div>
 
@@ -78,7 +80,7 @@ export default function Home() {
         {uploadedFiles.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              已上传的图片 ({uploadedFiles.length})
+              {t('home.uploadedCount', { count: uploadedFiles.length })}
             </h2>
             <ImagePreview
               images={uploadedFiles}
@@ -106,7 +108,7 @@ export default function Home() {
                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                   />
                 </svg>
-                开始识别
+                {t('home.startRecognition')}
               </button>
             </div>
           </div>

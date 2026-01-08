@@ -19,6 +19,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './i18n'  // 导入 i18n 配置（必须在 AppRouter 之前）
 import AppRouter from './router'
 
 /**

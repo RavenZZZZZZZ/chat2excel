@@ -12,9 +12,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ocrService } from '@/services/ocr';
 import { tableParser, markdownTableParser } from '@/services/table';
-import { supabaseStorageService } from '@/services/storage';
+import { taskExists, saveOCRResult } from '@/services/api';
 import { OCRProgress } from '@/components/ocr/OCRProgress';
 import { OCRResult } from '@/components/ocr/OCRResult';
 import { useUploadStore } from '@/stores/useUploadStore';
@@ -25,6 +26,7 @@ import type { TableParseResult } from '@/types/table';
 const log = createLogger('Recognizing');
 
 export default function Recognizing() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<OCRTask[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -102,14 +104,14 @@ export default function Recognizing() {
         if (task.status === 'completed' && task.result) {
           try {
             // 检查是否已保存（避免重复）
-            const exists = await supabaseStorageService.taskExists(task.id);
+            const exists = await taskExists(task.id);
             if (exists) {
               log.debug(`任务已保存，跳过: ${task.id}`);
               return;
             }
 
             // 上传图片并保存 OCR 结果
-            const saveResult = await supabaseStorageService.saveOCRResult(
+            const saveResult = await saveOCRResult(
               task.file,
               task
             );
@@ -212,12 +214,12 @@ export default function Recognizing() {
         {/* 页面标题 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {isProcessing ? '正在识别中...' : '识别完成'}
+            {isProcessing ? t('recognizing.title') : t('recognizing.completed')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             {isProcessing
-              ? '请稍候，正在提取图片中的文字'
-              : '所有图片识别完成，查看结果下方'}
+              ? t('recognizing.subtitle')
+              : t('recognizing.completedSubtitle')}
           </p>
         </div>
 
@@ -234,7 +236,7 @@ export default function Recognizing() {
               onClick={() => navigate('/')}
               className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
             >
-              返回首页
+              {t('common.back')}
             </button>
 
             <button
@@ -255,7 +257,7 @@ export default function Recognizing() {
               }}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
             >
-              编辑结果
+              {t('editing.title')}
             </button>
           </div>
         )}

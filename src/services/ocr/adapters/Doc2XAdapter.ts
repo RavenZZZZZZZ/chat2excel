@@ -14,25 +14,28 @@
 import axios, { type AxiosError } from 'axios';
 import type { OCRResult } from '@/types/ocr';
 import type { Doc2XResponse } from '@/types/doc2x';
-import { doc2xConfig, validateDoc2XConfig } from '@/config/doc2x.config';
 
 /**
  * Doc2X API 适配器
+ *
+ * 注意：已从直接调用 Doc2X API 迁移到通过后端 API 调用
+ * baseURL 现在指向 Vercel Serverless Functions (/api/ocr)
  */
 export class Doc2XAdapter {
   private baseURL: string;
   private timeout: number;
 
   constructor() {
-    // 验证配置
-    if (!validateDoc2XConfig()) {
-      throw new Error('Doc2X 配置无效');
-    }
+    // 指向新的后端 API 路径
+    // 开发环境：http://localhost:3000/api/ocr
+    // 生产环境：/api/ocr（相对路径，Vercel 自动路由）
+    this.baseURL = import.meta.env.VITE_API_BASE_URL
+      ? `${import.meta.env.VITE_API_BASE_URL}/ocr`
+      : '/api/ocr';
 
-    this.baseURL = doc2xConfig.baseURL;
-    this.timeout = doc2xConfig.timeout;
+    this.timeout = parseInt(import.meta.env.VITE_DOC2X_TIMEOUT || '60000', 10);
 
-    console.log('🔧 Doc2X 适配器初始化完成');
+    console.log('🔧 Doc2X 适配器初始化完成 (使用后端 API)');
   }
 
   /**
@@ -83,7 +86,7 @@ export class Doc2XAdapter {
     try {
       onProgress?.(5);
 
-      // 使用 FormData 上传文件到代理服务器
+      // 使用 FormData 上传文件到后端 API
       const formData = new FormData();
       formData.append('file', file);
 
@@ -92,7 +95,7 @@ export class Doc2XAdapter {
         data?: { uid: string };
         error?: string;
       }>(
-        `${this.baseURL}/parse/pdf`,
+        `${this.baseURL}/upload`,  // 改为 /upload
         formData,
         {
           headers: {
@@ -239,7 +242,7 @@ export class Doc2XAdapter {
       try {
         // 请求状态
         const response = await axios.get<Doc2XResponse>(
-          `${this.baseURL}/parse/status`,
+          `${this.baseURL}/status`,  // 改为 /status
           { params: { uid }, timeout }
         );
 
