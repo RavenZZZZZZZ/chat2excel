@@ -134,6 +134,66 @@ curl -X POST https://yiruoai.com/api/storage/upload -F "file=@test.jpg"
    - 类似问题在 [2026-01-08](#2026-01-08---nextjs-部署配置问题) 已记录过
    - 但代码又回退了，说明需要更好的代码审查机制
 
+### 🔧 Storage 故障排查指南
+
+#### 快速诊断工具
+
+**1. 诊断端点测试**：
+```bash
+# 测试 Supabase 连接
+curl https://yiruoai.com/api/debug/test-supabase
+
+# 详细 Storage 诊断
+curl https://yiruoai.com/api/debug/detailed-storage-test
+```
+
+**2. 查看 Vercel 日志**：
+```bash
+# 使用 Vercel CLI
+vercel logs --follow
+
+# 或在 Vercel Dashboard 查看
+# Deployment → Functions → api/storage/upload → Logs
+```
+
+#### 常见问题及解决方案
+
+**问题 1: 环境变量被假值覆盖**
+- **症状**: `SUPABASE_URL` 显示 `https://fake.supabase.co`，长度只有 24
+- **解决**: 移除 `next.config.mjs` 中的假环境变量（见上文解决方案）
+
+**问题 2: Storage Bucket 不存在**
+- **症状**: `Bucket 'ocr-images' not found`
+- **解决**: 在 Supabase Dashboard → Storage 创建 bucket，或运行 `scripts/init-supabase-storage.sql`
+
+**问题 3: 环境变量未配置**
+- **症状**: `SUPABASE_URL: ❌ Missing`
+- **解决**: 在 Vercel Dashboard → Settings → Environment Variables 中配置：
+  - `SUPABASE_URL` - 项目 URL（长度应 40+）
+  - `SUPABASE_SERVICE_ROLE_KEY` - Service Role Key（长度应 200+）
+  - `SUPABASE_BUCKET_NAME` - bucket 名称（默认：ocr-images）
+
+**问题 4: RLS 策略阻止访问**
+- **症状**: `new row violates row-level security policy`
+- **解决**: 确保使用 `service_role` key（不是 `anon` key）
+
+**问题 5: 权限不足 (403)**
+- **症状**: `Permission denied`, statusCode 403
+- **解决**:
+  1. 验证使用的是 `service_role` key
+  2. 检查 key 是否过期
+  3. 确认 bucket 策略允许 service_role 上传
+
+#### 快速修复清单
+
+按以下顺序排查问题：
+1. ✅ 运行诊断端点检查配置
+2. ✅ 检查 Vercel 环境变量
+3. ✅ 验证 `next.config.mjs` 没有假值
+4. ✅ 确认 Storage bucket 存在
+5. ✅ 检查使用 `service_role` key
+6. ✅ 查看 Vercel 日志获取详细错误
+
 ### 相关文档
 - [next.config.mjs](../next.config.mjs) - Next.js 配置文件
 - [app/api/storage/upload/route.ts](../app/api/storage/upload/route.ts) - Storage 上传 API

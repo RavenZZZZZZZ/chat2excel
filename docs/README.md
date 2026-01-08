@@ -23,6 +23,7 @@ Welcome to the Chat2Excel documentation. This directory contains all project doc
 - [VERCEL_LOGS_GUIDE.md](./VERCEL_LOGS_GUIDE.md) - 如何查看 Vercel 日志
 - [DIAGNOSE_403_ERROR.md](./DIAGNOSE_403_ERROR.md) - 调试 403 错误
 - [EXPORT_TROUBLESHOOTING.md](./EXPORT_TROUBLESHOOTING.md) - Excel 导出问题
+- **Storage 上传问题** - 查看 [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) 中的 2026-01-09 条目（含完整故障排查指南）
 
 ### 📝 Development
 - [DEVELOPMENT_LOG.md](./DEVELOPMENT_LOG.md) - 开发日志和问题记录

@@ -92,3 +92,4 @@ start-servers.sh
 .sentryclirc
 NEXTJS_BUILD_OUTPUT=1767880490
 .next/
+.env*.local

@@ -1,7 +1,7 @@
 # Chat2Excel - 表格 OCR 识别工具
 
 > 🌍 **Bilingual Support**: 中文 | [English](#english) |
-> 🎯 **Status**: Production Ready | 🚀 **Deployment**: Vercel + Aliyun CDN
+> 🎯 **Status**: Production Ready | 🚀 **Deployment**: Vercel | 🌐 **Live**: https://yiruoai.com
 
 一个全栈 Web 应用，使用 Doc2X API 将图片中的表格数据转换为 Excel 文件。支持**中英文双语**，采用**完全的前后端分离架构**。
 
