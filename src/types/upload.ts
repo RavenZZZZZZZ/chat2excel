@@ -81,7 +81,7 @@ export interface UploadError {
  */
 export const ERROR_MESSAGES: Record<UploadErrorCode, string> = {
   FILE_TOO_LARGE: '文件大小超过限制（最大 7MB）',
-  INVALID_FILE_TYPE: '不支持的文件格式，请上传 JPG、JPEG 或 PNG 图片',
+  INVALID_FILE_TYPE: '不支持的文件格式，请上传 JPG、JPEG、PNG 或 WebP 图片',
   NETWORK_ERROR: '网络连接失败，请检查网络设置',
   STORAGE_ERROR: '文件上传失败，请稍后重试',
   DATABASE_ERROR: '保存记录失败，请稍后重试',
