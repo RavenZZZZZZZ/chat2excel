@@ -80,7 +80,7 @@ export interface UploadError {
  * 错误信息映射
  */
 export const ERROR_MESSAGES: Record<UploadErrorCode, string> = {
-  FILE_TOO_LARGE: '文件大小超过限制（最大 10MB）',
+  FILE_TOO_LARGE: '文件大小超过限制（最大 7MB）',
   INVALID_FILE_TYPE: '不支持的文件格式，请上传 JPG、PNG、WEBP 或 GIF 图片',
   NETWORK_ERROR: '网络连接失败，请检查网络设置',
   STORAGE_ERROR: '文件上传失败，请稍后重试',

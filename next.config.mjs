@@ -11,6 +11,17 @@ const nextConfig = {
   },
   // 禁用静态资源缓存以便开发时快速测试
   generateEtags: false,
+  // 增加 API body 大小限制,支持上传大图片 (最大 7MB)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '7mb',
+    },
+  },
+  // API 路由配置
+  api: {
+    bodySizeLimit: '7mb',
+    responseLimit: '8mb',
+  },
 }
 
 export default nextConfig

@@ -58,9 +58,9 @@ interface ImageUploadProps {
 }
 
 /**
- * 默认最大文件大小：10MB
+ * 默认最大文件大小：7MB (与 Doc2X API 限制一致)
  */
-const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;
+const DEFAULT_MAX_SIZE = 7 * 1024 * 1024;
 
 /**
  * 允许的图片格式
