@@ -12,12 +12,10 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"],
     "allowJs": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["../shared/api-modules/*"]
-    }
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "."
   },
-  "include": ["**/*.ts", "../shared/**/*.ts", "../shared/**/*.js"],
-  "exclude": ["node_modules", "../shared/dist"]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
