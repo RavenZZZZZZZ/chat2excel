@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 使用 URL 参数而不是查询字符串
-    const url = new URL('https://v2.doc2x.noedgeai.com/api/v2/async/parse/status');
+    // 使用正确的 Doc2X 状态查询端点
+    const url = new URL('https://v2.doc2x.noedgeai.com/api/v2/parse/img/layout/status');
     url.searchParams.set('uid', uid);
 
     console.log('[OCR Status] Fetching from Doc2X:', url.toString());
