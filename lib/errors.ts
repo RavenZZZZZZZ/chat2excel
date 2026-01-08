@@ -1,11 +1,8 @@
 // @ts-check
 // ==============================================================================
-// error.ts - 自定义错误类
+// lib/errors.ts - 自定义错误类
 // ==============================================================================
 
-/**
- * API 错误基类
- */
 export class APIError extends Error {
   constructor(
     public statusCode: number,
@@ -18,9 +15,6 @@ export class APIError extends Error {
   }
 }
 
-/**
- * 验证错误 (400)
- */
 export class ValidationError extends APIError {
   constructor(message: string, details?: any) {
     super(400, 'VALIDATION_ERROR', message, details);
@@ -28,9 +22,6 @@ export class ValidationError extends APIError {
   }
 }
 
-/**
- * 未找到错误 (404)
- */
 export class NotFoundError extends APIError {
   constructor(resource: string, id: string) {
     super(404, 'NOT_FOUND', `${resource} not found`, { resource, id });
@@ -38,9 +29,6 @@ export class NotFoundError extends APIError {
   }
 }
 
-/**
- * 业务逻辑错误 (422)
- */
 export class BusinessError extends APIError {
   constructor(message: string, details?: any) {
     super(422, 'BUSINESS_ERROR', message, details);
