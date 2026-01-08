@@ -5,10 +5,8 @@ export async function GET(request: NextRequest) {
   const uid = request.nextUrl.searchParams.get('uid');
 
   const DOC2X_API_KEY = process.env.DOC2X_API_KEY;
-  const DOC2X_URL = 'https://v2.doc2x.noedgeai.com/api/v2/async/parse/status';
 
   console.log('[OCR Status] Request for uid:', uid);
-  console.log('[OCR Status] DOC2X_API_KEY exists:', !!DOC2X_API_KEY);
 
   try {
     if (!uid) {
@@ -18,19 +16,38 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log('[OCR Status] Fetching from Doc2X...');
+    // 使用 URL 参数而不是查询字符串
+    const url = new URL('https://v2.doc2x.noedgeai.com/api/v2/async/parse/status');
+    url.searchParams.set('uid', uid);
 
-    const response = await fetch(`${DOC2X_URL}?uid=${uid}`, {
+    console.log('[OCR Status] Fetching from Doc2X:', url.toString());
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${DOC2X_API_KEY}`,
+        'Accept': 'application/json',
       },
     });
 
     console.log('[OCR Status] Doc2X response status:', response.status);
-    console.log('[OCR Status] Doc2X response headers:', Object.fromEntries(response.headers.entries()));
 
     const text = await response.text();
-    console.log('[OCR Status] Doc2X response body:', text.substring(0, 200));
+    console.log('[OCR Status] Doc2X response length:', text.length);
+    console.log('[OCR Status] Doc2X response (first 200 chars):', text.substring(0, 200));
+
+    // 如果 Doc2X 返回空响应，返回处理中状态
+    if (!text || text.trim().length === 0) {
+      console.log('[OCR Status] Empty response from Doc2X, returning processing status');
+      return NextResponse.json({
+        code: 'success',
+        data: {
+          uid: uid,
+          status: 'processing',
+          progress: 0
+        }
+      });
+    }
 
     let data;
     try {
