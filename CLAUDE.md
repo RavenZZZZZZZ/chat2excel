@@ -4,6 +4,74 @@
 
 ---
 
+## 2026-01-09 - 前端资源文件名硬编码问题修复
+
+### 问题描述
+`app/page.tsx` 中硬编码了 Vite 构建产生的 JS/CSS 文件名:
+```typescript
+<script src="/assets/index-BWKsTMP9.js"></script>
+<link href="/assets/index-8U-2jKh2.css"></link>
+```
+
+**问题原因**:
+- Vite 每次构建会生成不同的 hash (如 `index-BWKsTMP9.js`, `index-Cvyrb-KI.js`)
+- 当前 `public/assets/` 目录中累积了多个不同 hash 的文件
+- `app/page.tsx` 引用的是旧文件,导致浏览器加载过期代码
+
+### 解决方案
+
+**方案**: 在构建流程中自动更新资源引用
+
+实现步骤:
+1. 创建 `scripts/update-assets.js` 自动更新脚本
+2. 修改 `scripts/build-all.sh` 集成更新流程
+3. 每次构建自动提取正确的文件名并更新 `app/page.tsx`
+
+### 核心代码
+
+**scripts/update-assets.js**:
+```javascript
+// 读取 Vite 构建生成的 index.html
+const distHtml = fs.readFileSync('dist/index.html', 'utf-8');
+
+// 提取 JS 和 CSS 文件名
+const jsMatch = distHtml.match(/src="\/assets\/(index-[^"]+\.js)"/);
+const cssMatch = distHtml.match(/href="\/assets\/(index-[^"]+\.css)"/);
+
+// 使用正则表达式精确替换 app/page.tsx
+pageTsx = pageTsx.replace(
+  /(<script[^>]*src=")\/assets\/index-[^"]+\.js("/g,
+  `$1/assets/${jsFilename}$2`
+);
+```
+
+**scripts/build-all.sh**:
+```bash
+# 2.5. 自动更新 Next.js 页面中的资源引用
+echo "📝 步骤 2.5: 更新 Next.js 页面资源引用..."
+node scripts/update-assets.js
+```
+
+### 测试验证
+```bash
+# 完整构建流程
+npm run build:all
+
+# 检查 app/page.tsx 是否更新
+grep "assets/index" app/page.tsx
+
+# 验证文件存在
+ls -lh public/assets/index-*
+```
+
+### 经验教训
+
+1. **自动化优于手动**: 硬编码文件名容易出错,自动化更新更可靠
+2. **正则表达式精确匹配**: 使用精确的正则表达式避免误替换
+3. **构建流程集成**: 将更新步骤集成到构建流程,确保每次构建都执行
+
+---
+
 ## 2026-01-08 - Doc2X API 集成问题排查
 
 ### 问题描述
