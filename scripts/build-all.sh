@@ -25,6 +25,11 @@ cp -r dist/*.svg public/ 2>/dev/null || true
 
 echo "  ✅ 前端文件已复制到 public/"
 
+# 2.5. 自动更新 Next.js 页面中的资源引用
+echo ""
+echo "📝 步骤 2.5: 更新 Next.js 页面资源引用..."
+node scripts/update-assets.js
+
 # 3. 构建后端（Next.js）
 echo ""
 echo "🔧 步骤 3/3: 构建后端 (Next.js)..."
