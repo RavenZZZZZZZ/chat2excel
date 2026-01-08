@@ -4,6 +4,209 @@
 
 ---
 
+## 2026-01-09 - [bug] Storage 上传 500 错误修复
+
+### 问题描述
+用户上传图片时返回 **500 Internal Server Error**：
+```
+POST /api/storage/upload 500 (Internal Server Error)
+```
+
+**症状**：
+- ✅ Doc2X OCR 识别成功（识别到 21 行数据）
+- ❌ 图片无法上传到 Supabase Storage
+- ❌ 错误消息通用："Failed to upload file to storage"
+
+**环境背景**：
+- Bucket `ocr-images` 之前正常使用过
+- 今天将后端迁移到 Next.js 后开始报错
+
+### 根本原因
+
+**next.config.mjs 中的假环境变量覆盖了 Vercel 真实环境变量**
+
+```javascript
+// ❌ 错误配置
+env: {
+  SUPABASE_URL: 'https://fake.supabase.co',
+  SUPABASE_SERVICE_ROLE_KEY: 'fake-key',
+}
+```
+
+**问题机制**：
+1. `next.config.mjs` 中的 `env` 配置在**构建时**注入环境变量
+2. 这些值会在**运行时**覆盖 Vercel Dashboard 设置的环境变量
+3. 导致 Supabase 客户端尝试连接 `https://fake.supabase.co`
+4. 结果：`TypeError: fetch failed`
+
+### 发现过程
+
+1. **增强错误日志**：
+   - 添加详细的 Supabase 错误信息记录
+   - 返回更友好的错误消息给客户端
+
+2. **创建诊断工具**：
+   - `/api/debug/test-supabase` - Supabase 连接测试
+   - `/api/debug/detailed-storage-test` - 详细 Storage 诊断
+
+3. **诊断结果**：
+   ```json
+   {
+     "SUPABASE_URL": "https://fake.supabase.co",
+     "SUPABASE_URL_LENGTH": 24,  // ❌ 太短了！
+     "Database Connection": "failed",
+     "Storage Error": "fetch failed"
+   }
+   ```
+
+4. **确认问题**：
+   - 检查 `next.config.mjs` 发现假环境变量
+   - 参考 [DEVELOPMENT_LOG.md - 2026-01-08](#2026-01-08---nextjs-部署配置问题) 中的类似问题
+
+### 解决方案
+
+**移除 next.config.mjs 中的 Supabase 假环境变量**：
+
+```javascript
+// ✅ 正确配置
+env: {
+  NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
+  // ⚠️ 重要：不要在这里设置 SUPABASE_URL 或 SUPABASE_SERVICE_ROLE_KEY
+  // next.config.mjs 中的 env 会覆盖 Vercel 的真实环境变量
+  // 这些变量应该只在 Vercel Dashboard 中配置，不要在代码中设置假值
+},
+```
+
+### 修改文件
+- `next.config.mjs` - 移除 SUPABASE_URL 和 SUPABASE_SERVICE_ROLE_KEY 假值
+- `app/api/storage/upload/route.ts` - 增强错误日志和返回消息
+- `app/api/debug/test-supabase/route.ts` - 新增 Supabase 连接测试端点
+- `app/api/debug/detailed-storage-test/route.ts` - 新增详细 Storage 诊断端点
+- `scripts/debug/production-test.sh` - 新增生产环境测试脚本
+- `scripts/init-supabase-storage.sql` - 新增 Supabase 初始化脚本
+- `scripts/diagnose-storage.sh` - 新增 Storage 诊断工具
+
+### 关键变更
+- ✅ 修复 Storage 上传功能
+- ✅ 环境变量正确配置（仅使用 Vercel Dashboard）
+- ✅ 添加完整的诊断工具链
+- ✅ 错误日志更详细，便于快速定位问题
+
+### 测试验证
+
+**修复前**：
+```bash
+curl -X POST https://yiruoai.com/api/storage/upload -F "file=@test.jpg"
+# 返回：{"success": false, "error": "UPLOAD_FAILED", "message": "Supabase Storage error: fetch failed"}
+```
+
+**修复后**：
+```bash
+curl -X POST https://yiruoai.com/api/storage/upload -F "file=@test.jpg"
+# 返回：{
+#   "success": true,
+#   "data": {
+#     "path": "uploads/1767902968750_86y5ck_test-upload.jpg",
+#     "url": "https://hlurjwzhsmieikygrlrs.supabase.co/storage/v1/object/public/ocr-images/uploads/..."
+#   },
+#   "message": "File uploaded successfully"
+# }
+```
+
+### 经验教训
+
+1. **next.config.mjs 的 env 配置陷阱**：
+   - ❌ 不要设置运行时环境变量（如 SUPABASE_URL）
+   - ✅ 只设置构建时变量（如 NEXT_PUBLIC_*）
+   - ⚠️ env 中的值会覆盖 Vercel 环境变量
+
+2. **环境变量管理最佳实践**：
+   - 敏感配置（API Key、数据库 URL）只在 Vercel Dashboard 设置
+   - 不要在代码中硬编码假值
+   - 使用 `.env.example` 提供模板，不包含真实值
+
+3. **诊断工具的价值**：
+   - 详细的错误日志能快速定位问题
+   - 独立的测试端点便于验证配置
+   - 自动化诊断脚本提高效率
+
+4. **文档的重要性**：
+   - 类似问题在 [2026-01-08](#2026-01-08---nextjs-部署配置问题) 已记录过
+   - 但代码又回退了，说明需要更好的代码审查机制
+
+### 相关文档
+- [next.config.mjs](../next.config.mjs) - Next.js 配置文件
+- [app/api/storage/upload/route.ts](../app/api/storage/upload/route.ts) - Storage 上传 API
+- [scripts/init-supabase-storage.sql](../scripts/init-supabase-storage.sql) - Supabase 初始化脚本
+- [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) - Supabase 配置指南
+
+---
+
+## 2026-01-09 - [config] 域名更换与 CDN 配置尝试
+
+### 功能描述
+将项目域名从 `yiruo.chat` 更换为 `yiruoai.com`，并尝试配置阿里云 CDN 加速。
+
+### 实现方案
+1. **域名批量更换**：
+   - 创建自动化脚本 `scripts/update-domain.sh`
+   - 批量更新 9 个文件中的 43 处域名引用
+   - 所有文档和配置文件同步更新
+
+2. **DNS 配置**：
+   - 配置阿里云 DNS 指向 Vercel 新 IP：`216.198.79.1`
+   - 修复 Vercel "Invalid Configuration" 错误
+   - Vercel 要求使用新 IP 地址进行域名验证
+
+3. **React Hydration 错误修复**：
+   - 问题：i18n 在服务端渲染时访问浏览器 API（localStorage、navigator）
+   - 错误：React Error #418 (Hydration failed)
+   - 解决：仅在客户端环境（`typeof window !== 'undefined'`）使用 LanguageDetector
+   - 使用动态导入避免服务端加载浏览器专用模块
+
+4. **CDN 配置尝试与发现**：
+   - 成功配置阿里云 CDN（加速域名、缓存策略、回源 HOST）
+   - **发现根本限制**：Vercel 不支持通过 CNAME 接入 CDN
+   - 原因：Vercel 要求域名通过 A 记录直接指向其 IP
+   - 结论：CDN + Vercel 架构不兼容，保持直接使用 Vercel
+
+### 修改文件
+- `src/i18n.ts` - 修复 Hydration 错误，仅客户端使用 LanguageDetector
+- `scripts/update-domain.sh` - 新增域名批量替换脚本
+- `scripts/test-performance.sh` - 更新域名为 yiruoai.com
+- `docs/ALIYUN_DNS_CONFIG.md` - 更新域名为 yiruoai.com
+- `docs/ALIYUN_CDN_QUICKSTART.md` - 更新域名为 yiruoai.com
+
+### 关键变更
+- ✅ 域名更换完成：yiruo.chat → yiruoai.com
+- ✅ DNS 配置正确：指向 Vercel 新 IP 216.198.79.1
+- ✅ 修复关键 Bug：React Hydration 错误
+- ⚠️ CDN 配置受限：Vercel 架构不支持 CDN 加速
+- ✅ 网站正常运行：https://yiruoai.com
+
+### 技术发现
+**Vercel + CDN 的冲突**：
+- Vercel 自定义域名要求 A 记录
+- CDN 要求 CNAME 记录
+- 两者无法同时使用，这是 Vercel 架构的设计限制
+
+**解决方案**：
+- 短期：直接使用 Vercel（当前方案）
+- 长期：迁移到国内服务器（阿里云函数计算）
+
+### 测试验证
+- ✅ 网站正常访问：https://yiruoai.com
+- ✅ 所有功能正常：文件上传、OCR 识别、Excel 导出
+- ✅ 无控制台错误
+- ✅ 语言切换功能正常
+
+### 相关文档
+- [scripts/update-domain.sh](../scripts/update-domain.sh) - 域名批量替换脚本
+- [docs/ALIYUN_DNS_CONFIG.md](./ALIYUN_DNS_CONFIG.md) - DNS 配置指南
+- [docs/ALIYUN_CDN_QUICKSTART.md](./ALIYUN_CDN_QUICKSTART.md) - CDN 配置指南（已废弃）
+
+---
+
 ## 2026-01-09 - [docs] 文档整理与 Claude Code 配置优化
 
 ### 功能描述
