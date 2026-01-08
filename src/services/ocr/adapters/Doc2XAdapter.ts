@@ -242,7 +242,7 @@ export class Doc2XAdapter {
       try {
         // 请求状态
         const response = await axios.get<Doc2XResponse>(
-          `${this.baseURL}/check-status`,  // 使用 check-status 端点
+          `${this.baseURL}/status`,
           { params: { uid }, timeout }
         );
 
