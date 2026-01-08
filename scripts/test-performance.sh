@@ -1,0 +1,390 @@
+#!/bin/bash
+
+# Chat2Excel 网站性能测试脚本
+# 测试当前 Vercel 部署的各项性能指标
+
+set -e
+
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# 配置
+DOMAIN="yiruoai.com"
+API_BASE="https://${DOMAIN}/api"
+TEST_IMAGE="./test-data/sample-image.jpg"
+
+echo -e "${BLUE}========================================${NC}"
+echo -e "${BLUE}Chat2Excel 性能测试${NC}"
+echo -e "${BLUE}========================================${NC}"
+echo ""
+
+# 检查是否有测试图片
+if [ ! -f "$TEST_IMAGE" ]; then
+    echo -e "${YELLOW}⚠️  未找到测试图片，将创建一个小的测试图片${NC}"
+    mkdir -p ./test-data
+    # 创建一个 1MB 的测试文件
+    dd if=/dev/zero of="$TEST_IMAGE" bs=1024 count=1024 2>/dev/null
+    echo -e "${GREEN}✓ 测试图片已创建：${TEST_IMAGE}${NC}"
+fi
+
+# 1. DNS 解析测试
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}1. DNS 解析测试${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+echo -e "\n${YELLOW}测试域名解析：${DOMAIN}${NC}"
+DNS_START=$(date +%s%N)
+DNS_RESULT=$(dig +short A ${DOMAIN} @8.8.8.8)
+DNS_END=$(date +%s%N)
+DNS_TIME=$(( (DNS_END - DNS_START) / 1000000 ))
+
+if [ -n "$DNS_RESULT" ]; then
+    echo -e "${GREEN}✓ DNS 解析成功${NC}"
+    echo "  IP 地址: ${DNS_RESULT}"
+    echo "  解析时间: ${DNS_TIME}ms"
+else
+    echo -e "${RED}✗ DNS 解析失败${NC}"
+fi
+
+echo ""
+
+# 2. SSL/TLS 握手测试
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}2. SSL/TLS 握手测试${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+SSL_START=$(date +%s%N)
+SSL_OUTPUT=$(openssl s_client -connect ${DOMAIN}:443 -servername ${DOMAIN} </dev/null 2>/dev/null)
+SSL_END=$(date +%s%N)
+SSL_TIME=$(( (SSL_END - SSL_START) / 1000000 ))
+
+if echo "$SSL_OUTPUT" | grep -q "Verify return code: 0"; then
+    echo -e "${GREEN}✓ SSL 证书有效${NC}"
+    echo "  握手时间: ${SSL_TIME}ms"
+
+    # 显示证书信息
+    CERT_SUBJECT=$(echo "$SSL_OUTPUT" | grep "subject=" | head -1 | sed 's/subject=//')
+    CERT_ISSUER=$(echo "$SSL_OUTPUT" | grep "issuer=" | head -1 | sed 's/issuer=//')
+    echo "  证书主题: ${CERT_SUBJECT}"
+    echo "  颁发者: ${CERT_ISSUER}"
+else
+    echo -e "${RED}✗ SSL 证书验证失败${NC}"
+fi
+
+echo ""
+
+# 3. 首页加载测试
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}3. 首页加载测试${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+echo -e "\n${YELLOW}测试首页: https://${DOMAIN}/${NC}"
+
+# 测试 3 次，取平均值
+TOTAL_TTFB=0
+TOTAL_LOAD=0
+ROUNDS=3
+
+for i in $(seq 1 $ROUNDS); do
+    echo -e "\n第 ${i}/${ROUNDS} 次测试:"
+
+    # 使用 curl 测试
+    RESPONSE=$(curl -s -o /dev/null -w "\
+        time_namelookup:%{time_namelookup}\n\
+        time_connect:%{time_connect}\n\
+        time_starttransfer:%{time_starttransfer}\n\
+        time_total:%{time_total}\n\
+        http_code:%{http_code}\n\
+        size_download:%{size_download}" \
+        -H "Cache-Control: no-cache" \
+        "https://${DOMAIN}/")
+
+    # 提取时间值
+    TTFB=$(echo "$RESPONSE" | grep time_starttransfer | cut -d: -f2)
+    TOTAL=$(echo "$RESPONSE" | grep time_total | cut -d: -f2)
+    HTTP_CODE=$(echo "$RESPONSE" | grep http_code | cut -d: -f2)
+    SIZE=$(echo "$RESPONSE" | grep size_download | cut -d: -f2)
+
+    TTFB_MS=$(echo "$TTFB * 1000" | bc)
+    TOTAL_MS=$(echo "$TOTAL * 1000" | bc)
+
+    TOTAL_TTFB=$(echo "$TOTAL_TTFB + $TTFB_MS" | bc)
+    TOTAL_LOAD=$(echo "$TOTAL_LOAD + $TOTAL_MS" | bc)
+
+    if [ "$HTTP_CODE" = "200" ]; then
+        echo -e "  ${GREEN}✓ HTTP ${HTTP_CODE}${NC}"
+        echo "  TTFB (首字节时间): ${TTFB_MS}ms"
+        echo "  总加载时间: ${TOTAL_MS}ms"
+        echo "  下载大小: $(echo "scale=2; $SIZE / 1024" | bc)KB"
+    else
+        echo -e "  ${RED}✗ HTTP ${HTTP_CODE}${NC}"
+    fi
+
+    # 等待 1 秒再测试下一次
+    sleep 1
+done
+
+# 计算平均值
+AVG_TTFB=$(echo "scale=2; $TOTAL_TTFB / $ROUNDS" | bc)
+AVG_LOAD=$(echo "scale=2; $TOTAL_LOAD / $ROUNDS" | bc)
+
+echo -e "\n${GREEN}平均性能：${NC}"
+echo "  平均 TTFB: ${AVG_TTFB}ms"
+echo "  平均加载时间: ${AVG_LOAD}ms"
+
+echo ""
+
+# 4. 静态资源测试
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}4. 静态资源测试${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+# 获取主页 HTML，提取资源 URL
+echo -e "\n${YELLOW}获取页面资源列表...${NC}"
+HTML=$(curl -s "https://${DOMAIN}/")
+
+# 提取 JS 文件
+JS_FILES=$(echo "$HTML" | grep -o 'src="/assets/[^"]*"' | sed 's/src="//;s/"//' | head -3)
+# 提取 CSS 文件
+CSS_FILES=$(echo "$HTML" | grep -o 'href="/assets/[^"]*\.css"' | sed 's/href="//;s/"//' | head -2)
+
+# 测试 JS 文件
+if [ -n "$JS_FILES" ]; then
+    echo -e "\n${YELLOW}JavaScript 文件测试：${NC}"
+    for js in $JS_FILES; do
+        RESOURCE_URL="https://${DOMAIN}${js}"
+        RESOURCE_NAME=$(basename "$js")
+
+        RESPONSE=$(curl -s -o /dev/null -w "\
+            time_total:%{time_total}\n\
+            size_download:%{size_download}" \
+            -H "Cache-Control: no-cache" \
+            "$RESOURCE_URL")
+
+        TOTAL_TIME=$(echo "$RESPONSE" | grep time_total | cut -d: -f2)
+        SIZE=$(echo "$RESPONSE" | grep size_download | cut -d: -f2)
+        TIME_MS=$(echo "$TOTAL_TIME * 1000" | bc)
+        SIZE_KB=$(echo "scale=2; $SIZE / 1024" | bc)
+
+        echo -e "  ${GREEN}✓${NC} ${RESOURCE_NAME}"
+        echo "     加载时间: ${TIME_MS}ms | 大小: ${SIZE_KB}KB"
+    done
+fi
+
+# 测试 CSS 文件
+if [ -n "$CSS_FILES" ]; then
+    echo -e "\n${YELLOW}CSS 文件测试：${NC}"
+    for css in $CSS_FILES; do
+        RESOURCE_URL="https://${DOMAIN}${css}"
+        RESOURCE_NAME=$(basename "$css")
+
+        RESPONSE=$(curl -s -o /dev/null -w "\
+            time_total:%{time_total}\n\
+            size_download:%{size_download}" \
+            -H "Cache-Control: no-cache" \
+            "$RESOURCE_URL")
+
+        TOTAL_TIME=$(echo "$RESPONSE" | grep time_total | cut -d: -f2)
+        SIZE=$(echo "$RESPONSE" | grep size_download | cut -d: -f2)
+        TIME_MS=$(echo "$TOTAL_TIME * 1000" | bc)
+        SIZE_KB=$(echo "scale=2; $SIZE / 1024" | bc)
+
+        echo -e "  ${GREEN}✓${NC} ${RESOURCE_NAME}"
+        echo "     加载时间: ${TIME_MS}ms | 大小: ${SIZE_KB}KB"
+    done
+fi
+
+echo ""
+
+# 5. API 端点测试
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}5. API 端点测试${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+# 5.1 健康检查 API
+echo -e "\n${YELLOW}测试健康检查 API:${NC}"
+echo "  GET ${API_BASE}/health"
+
+HEALTH_START=$(date +%s%N)
+HEALTH_RESPONSE=$(curl -s -w "\n%{http_code}" "${API_BASE}/health" 2>/dev/null)
+HEALTH_CODE=$(echo "$HEALTH_RESPONSE" | tail -1)
+HEALTH_BODY=$(echo "$HEALTH_RESPONSE" | sed '$d')
+HEALTH_END=$(date +%s%N)
+HEALTH_TIME=$(( (HEALTH_END - HEALTH_START) / 1000000 ))
+
+if [ "$HEALTH_CODE" = "200" ]; then
+    echo -e "  ${GREEN}✓ HTTP ${HEALTH_CODE}${NC}"
+    echo "  响应时间: ${HEALTH_TIME}ms"
+    echo "  响应内容: ${HEALTH_BODY}"
+else
+    echo -e "  ${YELLOW}⚠️  HTTP ${HEALTH_CODE}${NC}"
+    echo "  响应时间: ${HEALTH_TIME}ms"
+fi
+
+# 5.2 OCR 上传 API (使用小文件)
+echo -e "\n${YELLOW}测试 OCR 上传 API (1MB 测试文件):${NC}"
+echo "  POST ${API_BASE}/ocr/upload"
+
+UPLOAD_START=$(date +%s%N)
+UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" \
+    -X POST \
+    -F "file=@${TEST_IMAGE}" \
+    "${API_BASE}/ocr/upload" 2>/dev/null)
+UPLOAD_CODE=$(echo "$UPLOAD_RESPONSE" | tail -1)
+UPLOAD_BODY=$(echo "$UPLOAD_RESPONSE" | sed '$d')
+UPLOAD_END=$(date +%s%N)
+UPLOAD_TIME=$(( (UPLOAD_END - UPLOAD_START) / 1000000 ))
+
+if [ "$UPLOAD_CODE" = "200" ]; then
+    echo -e "  ${GREEN}✓ HTTP ${UPLOAD_CODE}${NC}"
+    echo "  上传时间: ${UPLOAD_TIME}ms"
+
+    # 提取 task_uid
+    task_uid=$(echo "$UPLOAD_BODY" | grep -o '"uid":"[^"]*"' | cut -d'"' -f4)
+    if [ -n "$task_uid" ]; then
+        echo "  任务 UID: ${task_uid}"
+
+        # 5.3 OCR 状态查询 API
+        echo -e "\n${YELLOW}测试 OCR 状态查询 API:${NC}"
+        echo "  GET ${API_BASE}/ocr/status?uid=${task_uid}"
+
+        sleep 2  # 等待 2 秒让 Doc2X 处理
+
+        STATUS_START=$(date +%s%N)
+        STATUS_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "${API_BASE}/ocr/status?uid=${task_uid}" 2>/dev/null)
+        STATUS_CODE=$(echo "$STATUS_RESPONSE" | tail -1)
+        STATUS_BODY=$(echo "$STATUS_RESPONSE" | sed '$d')
+        STATUS_END=$(date +%s%N)
+        STATUS_TIME=$(( (STATUS_END - STATUS_START) / 1000000 ))
+
+        if [ "$STATUS_CODE" = "200" ]; then
+            echo -e "  ${GREEN}✓ HTTP ${STATUS_CODE}${NC}"
+            echo "  响应时间: ${STATUS_TIME}ms"
+
+            # 提取状态
+            TASK_STATUS=$(echo "$STATUS_BODY" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+            echo "  任务状态: ${TASK_STATUS}"
+        else
+            echo -e "  ${YELLOW}⚠️  HTTP ${STATUS_CODE}${NC}"
+            echo "  响应时间: ${STATUS_TIME}ms"
+        fi
+    fi
+else
+    echo -e "  ${RED}✗ HTTP ${UPLOAD_CODE}${NC}"
+    echo "  上传时间: ${UPLOAD_TIME}ms"
+    echo "  错误信息: ${UPLOAD_BODY}"
+fi
+
+echo ""
+
+# 6. 性能评估
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}6. 性能评估${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+echo -e "\n${YELLOW}性能评分：${NC}"
+
+# 评分标准
+TTFB_SCORE=$(echo "$AVG_TTFB < 800" | bc)
+if [ "$TTFB_SCORE" = "1" ]; then
+    echo -e "  首字节时间 (TTFB): ${GREEN}优秀${NC} (${AVG_TTFB}ms < 800ms)"
+elif [ "$(echo "$AVG_TTFB < 1500" | bc)" = "1" ]; then
+    echo -e "  首字节时间 (TTFB): ${YELLOW}良好${NC} (${AVG_TTFB}ms < 1500ms)"
+else
+    echo -e "  首字节时间 (TTFB): ${RED}需优化${NC} (${AVG_TTFB}ms >= 1500ms)"
+fi
+
+LOAD_SCORE=$(echo "$AVG_LOAD < 2000" | bc)
+if [ "$LOAD_SCORE" = "1" ]; then
+    echo -e "  页面加载时间: ${GREEN}优秀${NC} (${AVG_LOAD}ms < 2000ms)"
+elif [ "$(echo "$AVG_LOAD < 4000" | bc)" = "1" ]; then
+    echo -e "  页面加载时间: ${YELLOW}良好${NC} (${AVG_LOAD}ms < 4000ms)"
+else
+    echo -e "  页面加载时间: ${RED}需优化${NC} (${AVG_LOAD}ms >= 4000ms)"
+fi
+
+echo ""
+
+# 7. 建议
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${BLUE}7. 优化建议${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+echo -e "\n${YELLOW}基于测试结果的建议：${NC}"
+
+# 根据 TTFB 判断
+if [ "$(echo "$AVG_TTFB > 1000" | bc)" = "1" ]; then
+    echo -e "  ${RED}• TTFB 较慢，建议配置阿里云 CDN${NC}"
+    echo "    - 预期改善: TTFB 可减少 40-60%"
+else
+    echo -e "  ${GREEN}• TTFB 尚可，CDN 加速效果有限${NC}"
+fi
+
+# 根据加载时间判断
+if [ "$(echo "$AVG_LOAD > 3000" | bc)" = "1" ]; then
+    echo -e "  ${RED}• 页面加载较慢，强烈建议配置 CDN${NC}"
+    echo "    - 静态资源缓存可大幅减少加载时间"
+    echo "    - 预期改善: 总加载时间可减少 50-70%"
+fi
+
+# API 性能
+if [ -n "$UPLOAD_TIME" ]; then
+    UPLOAD_TIME_SEC=$(echo "scale=2; $UPLOAD_TIME / 1000" | bc)
+    echo -e "\n${YELLOW}API 性能分析：${NC}"
+    echo "  • 上传时间: ${UPLOAD_TIME}ms (${UPLOAD_TIME_SEC}秒)"
+
+    if [ "$UPLOAD_TIME" -gt 5000 ]; then
+        echo -e "  ${RED}• API 响应较慢，可能原因：${NC}"
+        echo "    - Vercel 到 Doc2X API 的跨境连接延迟"
+        echo "    - 建议后续考虑将 API 部署到国内（阿里云 FC）"
+    else
+        echo -e "  ${GREEN}• API 响应正常${NC}"
+    fi
+fi
+
+echo ""
+echo -e "${BLUE}========================================${NC}"
+echo -e "${GREEN}测试完成！${NC}"
+echo -e "${BLUE}========================================${NC}"
+echo ""
+
+# 保存测试结果
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+REPORT_FILE="./test-data/performance-report-${TIMESTAMP}.txt"
+
+echo -e "${YELLOW}测试报告已保存到: ${REPORT_FILE}${NC}"
+
+# 生成简要报告
+cat > "$REPORT_FILE" << EOF
+Chat2Excel 性能测试报告
+======================
+测试时间: $(date '+%Y-%m-%d %H:%M:%S')
+域名: ${DOMAIN}
+
+1. DNS 解析
+   IP 地址: ${DNS_RESULT}
+   解析时间: ${DNS_TIME}ms
+
+2. SSL 握手
+   握手时间: ${SSL_TIME}ms
+
+3. 首页性能
+   平均 TTFB: ${AVG_TTFB}ms
+   平均加载时间: ${AVG_LOAD}ms
+
+4. API 性能
+   健康检查: ${HEALTH_TIME}ms
+   文件上传: ${UPLOAD_TIME}ms
+   状态查询: ${STATUS_TIME}ms
+
+5. 建议
+   ${AVG_TTFB}ms TTFB ${TTFB_SCORE}
+   ${AVG_LOAD}ms 加载时间 ${LOAD_SCORE}
+EOF
+
+echo -e "${GREEN}✓ 报告已生成${NC}\n"

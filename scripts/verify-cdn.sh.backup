@@ -4,7 +4,7 @@ echo "🔍 验证 CDN 配置"
 echo "================================"
 echo ""
 
-DOMAIN="yiruoai.com"
+DOMAIN="yiruo.chat"
 
 echo "📍 检查 DNS 解析（应该显示 CNAME）"
 echo "命令: dig +short CNAME $DOMAIN"

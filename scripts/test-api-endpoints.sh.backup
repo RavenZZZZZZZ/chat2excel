@@ -3,7 +3,7 @@
 # test-api-endpoints.sh - 测试所有 API 端点
 # ==============================================================================
 
-BASE_URL="https://yiruoai.com"
+BASE_URL="https://yiruo.chat"
 
 echo "🔍 测试 Chat2Excel API 端点"
 echo "========================================"

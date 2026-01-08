@@ -2,7 +2,7 @@
 
 ## 问题现象
 
-- ✅ 你访问 https://yiruoai.com 正常
+- ✅ 你访问 https://yiruo.chat 正常
 - ✅ 你自己在浏览器中测试正常
 - ❌ 同学访问时报 403 错误
 - ❌ 错误信息：`Failed to load resource: the server responded with a status of 403 ()`

@@ -58,16 +58,16 @@ cat << 'EOF'
 请在浏览器中测试以下链接：
 
 ✅ 应该返回 JSON:
-  https://yiruoai.com/api/health
+  https://yiruo.chat/api/health
 
 ✅ 应该返回 JavaScript 文件:
-  https://yiruoai.com/assets/index-BWKsTMP9.js
+  https://yiruo.chat/assets/index-BWKsTMP9.js
 
 ✅ 应该返回 CSS 文件:
-  https://yiruoai.com/assets/index-8U-2jKh2.css
+  https://yiruo.chat/assets/index-8U-2jKh2.css
 
 ✅ 应该返回 HTML 页面:
-  https://yiruoai.com/
+  https://yiruo.chat/
 
 ❓ 如果任何链接失败，请记录错误信息
 EOF

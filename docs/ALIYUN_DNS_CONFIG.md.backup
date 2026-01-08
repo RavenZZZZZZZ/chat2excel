@@ -1,9 +1,9 @@
-# 阿里云 DNS 配置指南 - yiruoai.com
+# 阿里云 DNS 配置指南 - yiruo.chat
 
 ## 步骤 1：登录阿里云 DNS 控制台
 
 1. 访问：https://dns.console.aliyun.com
-2. 在域名列表中找到 `yiruoai.com`
+2. 在域名列表中找到 `yiruo.chat`
 3. 点击"解析"按钮进入解析设置页面
 
 ## 步骤 2：添加 DNS 记录
@@ -20,7 +20,7 @@ TTL：10 分钟
 ```
 
 **说明**：
-- 主机记录 `@` 表示根域名（yiruoai.com）
+- 主机记录 `@` 表示根域名（yiruo.chat）
 - 记录值 `76.76.21.21` 是 Vercel 的负载均衡器 IP
 - TTL 选择 10 分钟可以让 DNS 快速生效
 
@@ -36,11 +36,11 @@ TTL：10 分钟
 ```
 
 **说明**：
-- 主机记录 `www` 表示 www 子域名（www.yiruoai.com）
+- 主机记录 `www` 表示 www 子域名（www.yiruo.chat）
 
 ### 可选：通配符子域名记录
 
-如果需要支持所有子域名（如 api.yiruoai.com, app.yiruoai.com 等）：
+如果需要支持所有子域名（如 api.yiruo.chat, app.yiruo.chat 等）：
 
 ```
 记录类型：A
@@ -69,10 +69,10 @@ bash scripts/check-dns.sh
 
 ```bash
 # 检查根域名
-dig +short A yiruoai.com @8.8.8.8
+dig +short A yiruo.chat @8.8.8.8
 
 # 检查 www 子域名
-dig +short A www.yiruoai.com @8.8.8.8
+dig +short A www.yiruo.chat @8.8.8.8
 ```
 
 **预期结果**：两个命令都应该返回 `76.76.21.21`
@@ -83,14 +83,14 @@ dig +short A www.yiruoai.com @8.8.8.8
 - https://tool.chinaz.com/dns/
 - https://dnschecker.org/
 
-输入域名 `yiruoai.com`，查看全球解析情况
+输入域名 `yiruo.chat`，查看全球解析情况
 
 ## 步骤 5：访问网站
 
 DNS 生效后，访问以下地址：
 
-- https://yiruoai.com
-- https://www.yiruoai.com
+- https://yiruo.chat
+- https://www.yiruo.chat
 
 **注意**：
 - Vercel 会自动配置 SSL 证书（Let's Encrypt）
@@ -134,7 +134,7 @@ DNS 生效后，访问以下地址：
 DNS 配置完成后，你可以：
 
 1. **测试网站功能**
-   - 访问 https://yiruoai.com
+   - 访问 https://yiruo.chat
    - 测试文件上传功能
    - 验证 OCR 识别功能
 
