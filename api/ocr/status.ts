@@ -4,8 +4,8 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
-import { cors } from '../middleware/cors';
-import { DOC2X_STATUS_ENDPOINT, DOC2X_API_KEY } from '../lib/doc2x';
+import { cors } from '../middleware/cors.js';
+import { DOC2X_STATUS_ENDPOINT, DOC2X_API_KEY } from '../lib/doc2x.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 处理 CORS
