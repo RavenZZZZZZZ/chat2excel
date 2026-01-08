@@ -4,10 +4,9 @@ const nextConfig = {
   // 移除 output: 'standalone'，改用默认模式以兼容 Vercel
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
-    // 为构建时提供假的环境变量（仅在构建时使用，运行时使用 Vercel 环境变量）
-    SUPABASE_URL: 'https://fake.supabase.co',
-    SUPABASE_SERVICE_ROLE_KEY: 'fake-key',
-    // DOC2X_API_KEY 不能设置假值，否则会覆盖 Vercel 的真实环境变量
+    // ⚠️ 重要：不要在这里设置 SUPABASE_URL 或 SUPABASE_SERVICE_ROLE_KEY
+    // next.config.mjs 中的 env 会覆盖 Vercel 的真实环境变量
+    // 这些变量应该只在 Vercel Dashboard 中配置，不要在代码中设置假值
   },
   // 禁用静态资源缓存以便开发时快速测试
   generateEtags: false,
