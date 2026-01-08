@@ -3,10 +3,10 @@
 // ==============================================================================
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase } from '../../shared/api-modules/lib/supabase';
-import { cors } from '../../shared/api-modules/middleware/cors';
-import { success, error, paginated } from '../../shared/api-modules/lib/response';
-import { ValidationError, BusinessError } from '../../shared/api-modules/lib/error';
+import { supabase } from '../api-modules/lib/supabase';
+import { cors } from '../api-modules/middleware/cors';
+import { success, error, paginated } from '../api-modules/lib/response';
+import { ValidationError, BusinessError } from '../api-modules/lib/error';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 处理 CORS

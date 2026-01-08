@@ -4,10 +4,10 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import formidable from 'formidable';
-import { supabase } from '../../shared/api-modules/lib/supabase';
-import { cors } from '../../shared/api-modules/middleware/cors';
-import { success, error } from '../../shared/api-modules/lib/response';
-import { ValidationError } from '../../shared/api-modules/lib/error';
+import { supabase } from '../api-modules/lib/supabase';
+import { cors } from '../api-modules/middleware/cors';
+import { success, error } from '../api-modules/lib/response';
+import { ValidationError } from '../api-modules/lib/error';
 
 export const config = {
   api: {
