@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:all": "npm run dev:vite & npm run dev",
     "build": "next build",
+    "build:all": "./scripts/build-all.sh",
     "start": "next start",
     "lint": "next lint",
     "dev:vite": "vite",

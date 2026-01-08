@@ -28,6 +28,9 @@ build/
 shared/dist/
 *.log
 .next/
+public/assets/
+public/index.html
+tsconfig.tsbuildinfo
 
 
 # -------------------------------------------------------------------------------
