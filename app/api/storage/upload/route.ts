@@ -51,8 +51,17 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('[Storage Upload] Upload failed:', uploadError);
-      throw new Error('Failed to upload file to storage');
+      console.error('[Storage Upload] Upload failed:', {
+        message: uploadError.message,
+        statusCode: uploadError.statusCode,
+        error: uploadError.error,
+        name: uploadError.name,
+        bucket: bucketName,
+        path: filePath,
+        fileSize: buffer.length,
+        contentType: file.type,
+      });
+      throw new Error(`Supabase Storage error: ${uploadError.message} (${uploadError.statusCode})`);
     }
 
     // 获取公开 URL
@@ -73,19 +82,40 @@ export async function POST(request: NextRequest) {
     }, { headers: corsHeaders(request) });
 
   } catch (err: any) {
-    console.error('[Storage Upload] Error:', err);
+    console.error('[Storage Upload] Error:', {
+      name: err.name,
+      message: err.message,
+      code: err.code,
+      stack: err.stack?.split('\n')?.[0], // 只保留第一行 stack trace
+    });
 
     if (err.code === 'VALIDATION_ERROR') {
       return NextResponse.json({
         success: false,
-        error: { code: err.code, message: err.message, details: err.details },
+        error: {
+          code: err.code,
+          message: err.message,
+          details: err.details
+        },
         timestamp: Date.now(),
       }, { status: 400, headers: corsHeaders(request) });
     }
 
+    // 返回更详细的错误信息（生产环境安全）
+    const errorMessage = err.message || 'Failed to upload file';
     return NextResponse.json({
       success: false,
-      error: { code: 'UPLOAD_FAILED', message: err.message || 'Failed to upload file' },
+      error: {
+        code: 'UPLOAD_FAILED',
+        message: errorMessage,
+        // 在开发环境包含更多调试信息
+        ...(process.env.NODE_ENV === 'development' && {
+          details: {
+            name: err.name,
+            code: err.code,
+          }
+        })
+      },
       timestamp: Date.now(),
     }, { status: 500, headers: corsHeaders(request) });
   }
