@@ -28,8 +28,8 @@ build/
 shared/dist/
 *.log
 .next/
-public/assets/
-public/index.html
+# 注意：public/assets/ 和 public/index.html 需要提交到 Git
+# 因为 Vercel 部署时需要这些文件
 tsconfig.tsbuildinfo
 
 
