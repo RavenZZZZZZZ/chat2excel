@@ -2,7 +2,35 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/**/*.ts": {
+    "api/health.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/tasks/index.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/tasks/[id].ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/tasks/exists.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/storage/upload.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/storage/delete.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/ocr/upload.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    },
+    "api/ocr/status.ts": {
       "memory": 1024,
       "maxDuration": 10
     }
