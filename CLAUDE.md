@@ -4,6 +4,121 @@
 
 ---
 
+## 2026-01-09 - 413 错误:文件上传大小限制问题
+
+### 问题描述
+用户上传大图片时返回 **413 Payload Too Large** 错误:
+```
+POST /api/ocr/upload 413 (Payload Too Large)
+```
+
+**用户反馈**: 朋友测试时上传图片失败,返回413错误
+
+### 根本原因
+
+**Next.js 默认 body 大小限制过小**:
+- Next.js 默认限制: **1MB**
+- Doc2X API 限制: **7MB**
+- 前端组件限制: **10MB** (不一致!)
+
+导致问题:
+1. 前端允许上传 10MB 的图片
+2. Next.js 在 1MB 时拦截,返回 413
+3. 后端代码虽然验证了 7MB,但请求根本没到达
+
+### 解决方案
+
+#### 1. 增加 Next.js API body 大小限制
+
+**next.config.mjs**:
+```javascript
+export default {
+  // ...其他配置
+  // 增加 API body 大小限制,支持上传大图片 (最大 7MB)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '7mb',
+    },
+  },
+  // API 路由配置
+  api: {
+    bodySizeLimit: '7mb',
+    responseLimit: '8mb',
+  },
+}
+```
+
+#### 2. 统一前后端文件大小限制
+
+**src/components/upload/ImageUpload.tsx**:
+```typescript
+// 修改前
+const DEFAULT_MAX_SIZE = 10 * 1024 * 1024;  // ❌ 10MB
+
+// 修改后
+const DEFAULT_MAX_SIZE = 7 * 1024 * 1024;   // ✅ 7MB
+```
+
+**src/types/upload.ts**:
+```typescript
+export const ERROR_MESSAGES: Record<UploadErrorCode, string> = {
+  FILE_TOO_LARGE: '文件大小超过限制（最大 7MB）',  // ✅ 统一为 7MB
+  // ...
+};
+```
+
+#### 3. 后端验证
+
+**app/api/ocr/upload/route.ts** (已存在):
+```typescript
+// 验证文件大小
+if (file.size > 7 * 1024 * 1024) {
+  return NextResponse.json({
+    code: 'error',
+    error: '文件大小超过 7MB 限制'
+  }, { status: 400 });
+}
+```
+
+### Doc2X API 限制
+
+根据 Doc2X API 文档:
+- **请求体格式**: img(jpg/png) 的二进制
+- **最大大小**: 7M
+
+### 测试验证
+
+```bash
+# 1. 上传小于 7MB 的图片 - 应该成功
+curl -X POST http://localhost:3000/api/ocr/upload \
+  -F "file=@test-image-5mb.jpg"
+
+# 2. 上传大于 7MB 的图片 - 应该返回 400 错误
+curl -X POST http://localhost:3000/api/ocr/upload \
+  -F "file=@test-image-8mb.jpg"
+
+# 前端验证
+# 尝试上传 8MB 图片,应该在点击时提示: "文件大小超过限制(最大 7MB)"
+```
+
+### 经验教训
+
+1. **三层验证确保一致性**:
+   - 前端: 用户友好的错误提示
+   - Next.js: Body 大小限制
+   - 后端: 业务逻辑验证
+
+2. **统一配置,避免不一致**:
+   - 所有地方使用相同的限制值
+   - 参考第三方 API 的限制文档
+
+3. **错误码 413 的含义**:
+   - HTTP 413 = Payload Too Large
+   - 通常是服务器配置限制
+   - 需要调整服务器配置,而不仅仅是业务代码
+
+---
+
 ## 2026-01-09 - 前端资源文件名硬编码问题修复
 
 ### 问题描述
