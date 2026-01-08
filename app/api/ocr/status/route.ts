@@ -18,21 +18,41 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
+    console.log('[OCR Status] Fetching from Doc2X...');
+
     const response = await fetch(`${DOC2X_URL}?uid=${uid}`, {
       headers: {
         'Authorization': `Bearer ${DOC2X_API_KEY}`,
       },
     });
 
-    const data = await response.json();
-    console.log('[OCR Status] Response:', { uid, status: response.status });
+    console.log('[OCR Status] Doc2X response status:', response.status);
+    console.log('[OCR Status] Doc2X response headers:', Object.fromEntries(response.headers.entries()));
+
+    const text = await response.text();
+    console.log('[OCR Status] Doc2X response body:', text.substring(0, 200));
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error('[OCR Status] Failed to parse JSON:', text);
+      return NextResponse.json({
+        code: 'error',
+        error: 'Invalid JSON response from Doc2X',
+        raw_response: text.substring(0, 500)
+      }, { status: 500 });
+    }
+
+    console.log('[OCR Status] Parsed response:', data);
 
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('[OCR Status] Error:', error.message, error.stack);
     return NextResponse.json({
       code: 'error',
-      error: error.message
+      error: error.message,
+      stack: error.stack
     }, { status: 500 });
   }
 }
