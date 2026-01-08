@@ -63,13 +63,17 @@ interface ImageUploadProps {
 const DEFAULT_MAX_SIZE = 7 * 1024 * 1024;
 
 /**
- * 允许的图片格式
+ * 允许的图片格式 (仅支持 Doc2X API 兼容的格式)
+ *
+ * Doc2X API 文档明确说明:
+ * - 请求体为 img(jpg/png) 的二进制
+ * - 最大不超过 7M
+ *
+ * 因此只支持 JPG 和 PNG 格式
  */
 const ACCEPTED_FILE_TYPES = {
   'image/jpeg': ['.jpg', '.jpeg'],
   'image/png': ['.png'],
-  'image/webp': ['.webp'],
-  'image/gif': ['.gif'],
 };
 
 /**
@@ -144,7 +148,7 @@ export function ImageUpload({
       if (rejection.errors[0].code === 'file-too-large') {
         setError(`文件大小超过限制（最大 ${Math.round(maxSize / 1024 / 1024)}MB）`);
       } else if (rejection.errors[0].code === 'file-invalid-type') {
-        setError('不支持的文件格式，请上传 JPG、PNG、WEBP 或 GIF 图片');
+        setError('不支持的文件格式，请上传 JPG 或 PNG 图片');
       } else {
         setError('文件上传失败，请重试');
       }
@@ -251,7 +255,7 @@ export function ImageUpload({
             {isUploading ? '正在上传...' : isDragActive ? '释放鼠标上传' : '拖拽图片到这里，或点击选择'}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            支持 JPG、PNG、WEBP、GIF 格式，最大 {Math.round(maxSize / 1024 / 1024)}MB
+            支持 JPG、PNG 格式，最大 {Math.round(maxSize / 1024 / 1024)}MB
           </p>
         </div>
 

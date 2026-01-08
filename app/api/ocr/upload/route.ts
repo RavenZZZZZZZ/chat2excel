@@ -45,13 +45,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400, headers: corsHeaders(request) });
     }
 
-    // 验证文件类型
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    // 验证文件类型 (仅支持 Doc2X API 兼容的格式)
+    // Doc2X API 文档: 请求体为 img(jpg/png) 的二进制
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       console.error('[OCR Upload] Unsupported file type:', file.type);
       return NextResponse.json({
         code: 'error',
-        error: `不支持的文件类型: ${file.type}。仅支持 JPEG、PNG、WEBP、GIF`
+        error: `不支持的文件类型: ${file.type}。仅支持 JPG、PNG 格式`
       }, { status: 400, headers: corsHeaders(request) });
     }
 
