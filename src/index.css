@@ -160,6 +160,18 @@ svg {
   background-color: #0E0E0E !important;
 }
 
+.dark .bg-gray-50 {
+  background-color: #09090B !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #1F2937 !important;
+}
+
+.dark .bg-gray-200 {
+  background-color: #374151 !important;
+}
+
 .dark .bg-\[\#FDFDF7\] {
   background-color: #09090B !important;
 }
@@ -173,8 +185,16 @@ svg {
   color: #9CA3AF !important;
 }
 
+.dark .text-gray-500 {
+  color: #6B7280 !important;
+}
+
 .dark .text-gray-400 {
   color: #6B7280 !important;
+}
+
+.dark .text-gray-300 {
+  color: #4B5563 !important;
 }
 
 .dark .text-\[\#0E0E0E\] {
@@ -189,12 +209,45 @@ svg {
   color: #0E0E0E !important;
 }
 
+/* 暗色模式悬停背景色 */
+.dark .hover\:bg-gray-100:hover {
+  background-color: #1F2937 !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: #09090B !important;
+}
+
+.dark .hover\:bg-gray-800\/30:hover {
+  background-color: rgb(31, 41, 55 / 0.3) !important;
+}
+
 /* 暗色模式边框色 */
 .dark .border-gray-200 {
   border-color: rgb(31, 41, 55) !important;
 }
 
+.dark .border-gray-300 {
+  border-color: rgb(55, 65, 81) !important;
+}
+
 .dark .border-gray-800 {
   border-color: rgb(55, 65, 81) !important;
+}
+
+/* 暗色模式其他常用样式 */
+.dark .placeholder\:text-gray-400::placeholder {
+  color: #9CA3AF !important;
+}
+
+.dark .\* {
+  color-scheme: dark;
+}
+
+/* 暗色模式阴影 */
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg {
+  --tw-shadow-color: rgba(0, 0, 0, 0.5);
 }
 

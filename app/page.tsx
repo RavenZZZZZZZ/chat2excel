@@ -6,8 +6,8 @@ export default function RootPage() {
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Chat2Excel - 表格 OCR 识别工具</title>
-        <script type="module" crossOrigin="anonymous" src="/assets/index-SZHgEtKj.js"></script>
-        <link rel="stylesheet" crossOrigin="anonymous" href="/assets/index-DCkV_Sf3.css"></link>
+        <script type="module" crossOrigin="anonymous" src="/assets/index-DS40HWz9.js"></script>
+        <link rel="stylesheet" crossOrigin="anonymous" href="/assets/index-Rf5SUrv8.css"></link>
       </head>
       <body>
         <div id="root"></div>

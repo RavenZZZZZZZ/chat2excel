@@ -64,15 +64,11 @@ function applyTheme(theme: 'light' | 'dark') {
 
   const root = document.documentElement;
 
-  console.log('[useTheme] 应用主题:', theme, '当前 dark class:', root.classList.contains('dark'));
-
   if (theme === 'dark') {
     root.classList.add('dark');
   } else {
     root.classList.remove('dark');
   }
-
-  console.log('[useTheme] 应用后 dark class:', root.classList.contains('dark'));
 }
 
 export function useTheme() {
@@ -97,7 +93,6 @@ export function useTheme() {
   }, [theme, mounted]);
 
   const setTheme = (newTheme: Theme) => {
-    console.log('[useTheme] 设置主题:', newTheme);
     setThemeState(newTheme);
     saveTheme(newTheme);
   };
