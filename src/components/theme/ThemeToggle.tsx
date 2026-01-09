@@ -10,29 +10,23 @@
 //
 // ==============================================================================
 
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from './useTheme';
 
 /**
  * 主题切换按钮组件
  *
  * 功能说明：
- * - 使用 next-themes 的 useTheme Hook 获取和设置主题
+ * - 使用自定义 useTheme Hook 获取和设置主题
  * - 亮色模式显示太阳图标，暗色模式显示月亮图标
  * - 点击切换主题（Light <-> Dark）
  * - 添加了加载状态避免 SSR 水合不匹配
  */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, isDark, mounted } = useTheme();
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  // 等待组件挂载后再显示，避免 SSR 水合不匹配
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // 如果未挂载，显示占位符（保持布局稳定）
   if (!mounted) {
@@ -46,8 +40,6 @@ export function ThemeToggle() {
       </button>
     );
   }
-
-  const isDark = theme === 'dark';
 
   return (
     <button

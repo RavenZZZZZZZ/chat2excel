@@ -20,7 +20,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Analytics } from '@vercel/analytics/react';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 // 初始化 Sentry（仅在生产环境且配置了 DSN 时启用）
 if (import.meta.env.PROD && import.meta.env.VITE_ENABLE_SENTRY === 'true') {
@@ -44,29 +43,21 @@ function App() {
         console.error('应用级错误捕获:', error, errorInfo);
       }}
     >
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem={true}
-        disableTransitionOnChange={false}
-        storageKey="chat2excel-theme"
-      >
-        <div className="min-h-screen flex flex-col">
-          {/* 顶部导航栏 */}
-          <Header />
+      <div className="min-h-screen flex flex-col">
+        {/* 顶部导航栏 */}
+        <Header />
 
-          {/* 页面主要内容区域 */}
-          <main className="flex-1">
-            <Outlet />
-          </main>
+        {/* 页面主要内容区域 */}
+        <main className="flex-1">
+          <Outlet />
+        </main>
 
-          {/* 页脚 */}
-          <Footer />
-        </div>
+        {/* 页脚 */}
+        <Footer />
+      </div>
 
-        {/* Vercel Analytics - 仅在生产环境启用 */}
-        {import.meta.env.PROD && <Analytics />}
-      </ThemeProvider>
+      {/* Vercel Analytics - 仅在生产环境启用 */}
+      {import.meta.env.PROD && <Analytics />}
     </ErrorBoundary>
   );
 }

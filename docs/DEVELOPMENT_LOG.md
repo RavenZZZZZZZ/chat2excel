@@ -4,6 +4,178 @@
 
 ---
 
+## 2026-01-09 - [fix] 修复 OCR 结果渲染错误并实现自动识别
+
+### 功能描述
+用户报告两个核心问题：
+1. **TypeError**: `v.data.slice is not a function` - OCR 识别成功但结果无法显示
+2. **用户体验**: 上传文件后需要手动点击"开始识别",希望改为自动识别
+
+### 实现方案
+
+#### 问题 1: 数据格式不匹配
+**根本原因**: OCR 返回的是 `TableData` 对象格式,但 ResultsStep 期望二维数组格式
+
+**TableData 结构**:
+```typescript
+{
+  rows: [{
+    cells: [{ value: "text", confidence: 0.95 }]
+  }]
+}
+```
+
+**修复方案**:
+在 `OCRWorkflow.tsx` 中添加数据转换逻辑:
+```typescript
+// 将 TableData 转换为二维数组格式
+const tableData = result.data.rows.map(row =>
+  row.cells.map(cell => cell.value)
+);
+```
+
+**防御性检查**:
+在 `ResultsStep.tsx` 中添加数据验证:
+```typescript
+if (!Array.isArray(currentResult.data)) {
+  console.error('[ResultsStep] 数据格式错误');
+  return <div>数据格式错误</div>;
+}
+```
+
+#### 问题 2: 实现自动开始识别
+**修改位置**: `OCRWorkflow.tsx` - `UploadStep` 的 `onFilesSelected` 回调
+
+**实现方式**:
+```typescript
+onFilesSelected={(newFiles) => {
+  setFiles(newFiles);
+  setOcrTasks(initializeTasks(newFiles));
+
+  // 自动开始 OCR
+  if (newFiles.length > 0) {
+    setTimeout(() => {
+      shouldStartOCR.current = true;
+      setIsOCRProcessing(true);
+    }, 100);
+  }
+}}
+```
+
+使用 `setTimeout` 确保 state 更新完成后再触发 OCR。
+
+### 修改文件
+- `src/components/workflow/tools/OCRWorkflow.tsx` - 数据格式转换 + 自动识别逻辑
+- `src/components/workflow/steps/ResultsStep.tsx` - 防御性数据验证
+- `app/api/ocr/upload/route.ts` - 增强错误日志
+- `app/api/debug/env-check/route.ts` - 新增环境变量检查 API
+
+### 关键变更
+- ✅ **数据格式转换**: TableData → any[][] (二维数组)
+- ✅ **自动识别**: 上传文件后 100ms 自动触发 OCR
+- ✅ **错误处理**: 添加数据格式验证和友好错误提示
+- ✅ **调试工具**: 新增 `/api/debug/env-check` API 检查环境变量
+- ✅ **详细日志**: 增强 OCR API 错误日志,便于排查问题
+
+### 测试验证
+1. ✅ 上传包含表格的图片 (test02.jpg - 火车票)
+2. ✅ 自动开始 OCR 识别 (无需手动点击)
+3. ✅ 成功识别 21 行数据 (1 表头 + 20 数据)
+4. ✅ 结果正确显示为表格
+5. ✅ 控制台无 TypeError 错误
+
+**识别结果示例**:
+```
+✅ HTML 表格解析成功: 21 行有效数据
+Table parsing successful: test02.jpg, confidence: 100.0%
+```
+
+### 相关文档
+- [docs/CLEANUP_SUMMARY.md](./CLEANUP_SUMMARY.md) - 项目清理记录
+
+### 诊断过程
+遇到 500 错误时:
+1. ✅ 检查环境变量 - `/api/debug/env-check` 确认 DOC2X_API_KEY 已配置
+2. ✅ 检查 Vercel 日志 - 发现请求超时
+3. ✅ 增强错误日志 - 添加详细的错误信息和堆栈
+4. ✅ 最终发现 - 实际上第一次测试就成功了,之前是偶发的网络问题
+
+---
+
+## 2026-01-09 - [refactor] 清理项目结构和文档
+
+### 功能描述
+项目在开发过程中积累了大量临时文档、归档文件和调试代码,影响项目可维护性。用户要求"该删删"。
+
+### 实现方案
+
+#### 删除内容统计
+- **归档文档**: 16 个文件 (`docs/archive/` 整个目录)
+- **临时诊断文档**: 7 个文件 (OCR_500_ERROR_DIAGNOSIS.md 等)
+- **调试 API**: 3 个路由 (detailed-storage-test, routes, test-supabase)
+- **脚本备份**: 6 个 `.backup` 文件
+- **总计**: 32 个文件/目录
+
+#### 保留核心文档
+```
+docs/
+├── README.md                    # 文档索引
+├── API.md                       # API 文档
+├── DATABASE_SCHEMA_DESIGN.md    # 数据库设计
+├── PHASE2_ARCHITECTURE.md       # 架构设计
+├── DEVELOPMENT_LOG.md           # 开发日志
+└── CLEANUP_SUMMARY.md           # 清理总结
+```
+
+### 修改文件
+- `docs/README.md` - 更新文档索引,添加项目结构和技术栈说明
+- `docs/CLEANUP_SUMMARY.md` - 记录本次清理的详细内容
+- `docs/archive/*` - 删除整个目录
+- `docs/*.backup` - 删除所有备份文件
+- `docs/OCR_500_ERROR_DIAGNOSIS.md` - 删除临时诊断文档
+- `docs/GLOBAL_LATENCY_REPORT.md` - 删除延迟报告
+- `docs/PERFORMANCE_REPORT.md` - 删除性能报告
+- `docs/VERCEL_ENV_SETUP.md` - 删除环境变量设置文档
+- `docs/WORKFLOW_V3_TEST.md` - 删除测试指南
+- `docs/VERCEL_DEPLOYMENT_CHECKLIST.md` - 删除部署清单
+- `app/api/debug/detailed-storage-test/` - 删除存储测试 API
+- `app/api/debug/routes/` - 删除路由测试 API
+- `app/api/debug/test-supabase/` - 删除 Supabase 测试 API
+- `scripts/*.backup` - 删除所有脚本备份
+
+### 关键变更
+- ✅ **删除归档目录**: 不再使用 `archive/` 目录,旧文档直接删除
+- ✅ **简化文档结构**: 只保留 6 个核心文档
+- ✅ **清理调试 API**: 保留 `env-check/`,删除其他调试路由
+- ✅ **删除备份文件**: 所有 `.backup` 文件删除
+- ✅ **更新文档索引**: `docs/README.md` 添加项目结构和技术栈说明
+
+### 清理效果
+- ✅ 项目结构更清晰
+- ✅ 文档更易维护
+- ✅ 减少混淆和重复
+- ✅ 提高开发效率
+- ✅ 删除 10,503 行冗余代码
+
+### 验证方法
+```bash
+# 检查文档结构
+ls -la docs/
+
+# 应该只看到 6 个核心文档
+README.md
+API.md
+DATABASE_SCHEMA_DESIGN.md
+PHASE2_ARCHITECTURE.md
+DEVELOPMENT_LOG.md
+CLEANUP_SUMMARY.md
+```
+
+### 相关文档
+- [docs/CLEANUP_SUMMARY.md](./CLEANUP_SUMMARY.md) - 详细清理记录
+
+---
+
 ## 2026-01-09 - [config] 配置 Claude Code 默认语言为中文
 
 ### 功能描述
