@@ -81,11 +81,49 @@ export function OCRWorkflow() {
 
   /**
    * 更新 OCR 任务状态
+   * 将 OCRTask 转换为 ProcessingTask 格式
    */
-  const updateOcrTask = (updatedTask: ProcessingTask) => {
-    setOcrTasks(prev => prev.map(task =>
-      task.id === updatedTask.id ? updatedTask : task
-    ));
+  const updateOcrTask = (ocrTask: any) => {
+    log.info('updateOcrTask 被调用:', ocrTask);
+
+    setOcrTasks(prev => {
+      // 找到对应的任务 (通过文件名匹配)
+      const taskIndex = prev.findIndex(t => t.name === ocrTask.file.name);
+
+      if (taskIndex === -1) {
+        // 如果找不到匹配的任务,可能是新上传的文件
+        log.warn('找不到匹配的任务:', ocrTask.file.name);
+        return prev;
+      }
+
+      // 映射状态
+      let status: ProcessingTask['status'] = 'pending';
+      switch (ocrTask.status) {
+        case 'recognizing':
+          status = 'processing';
+          break;
+        case 'completed':
+          status = 'completed';
+          break;
+        case 'failed':
+          status = 'failed';
+          break;
+        default:
+          status = 'pending';
+      }
+
+      log.info(`更新任务 [${taskIndex}]: ${ocrTask.file.name}, 进度: ${ocrTask.progress}%, 状态: ${status}`);
+
+      // 更新任务
+      const updatedTasks = [...prev];
+      updatedTasks[taskIndex] = {
+        ...updatedTasks[taskIndex],
+        progress: ocrTask.progress,
+        status,
+      };
+
+      return updatedTasks;
+    });
   };
 
   /**
