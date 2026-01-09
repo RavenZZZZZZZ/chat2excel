@@ -49,16 +49,37 @@ const Export = lazy(() => import('@/views/Export'));
 const Help = lazy(() => import('@/views/Help'));
 
 /**
+ * 懒加载设计测试页面组件
+ */
+const DesignTest = lazy(() => import('@/views/DesignTest'));
+
+/**
+ * 导入新的单页工作流组件 (v2) - 不使用懒加载
+ */
+import { AppWorkflow } from '@/components/workflow/AppWorkflow';
+
+/**
  * 创建路由器
- * 
+ *
  * 定义所有路由规则和对应的组件
  * - path: 路由路径
  * - element: 对应的页面组件
  * - Suspense: 显示加载状态
+ *
+ * 路由说明:
+ * - /: 新的单页工作流应用 (v2, 零页面跳转)
+ * - /legacy: 旧版首页 (备份)
+ * - /legacy/recognizing: 旧版识别页 (备份)
+ * - /legacy/editing: 旧版编辑页 (备份)
  */
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <AppWorkflow />,
+  },
+  // 旧页面备份 (通过 /legacy 访问)
+  {
+    path: '/legacy',
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <Home />
@@ -66,7 +87,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/recognizing',
+    path: '/legacy/recognizing',
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <Recognizing />
@@ -74,7 +95,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/editing',
+    path: '/legacy/editing',
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <Editing />
@@ -82,7 +103,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: '/editing/:id',
+    path: '/legacy/editing/:id',
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <Editing />
@@ -102,6 +123,14 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <Help />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/design-test',
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <DesignTest />
       </Suspense>
     ),
   },
