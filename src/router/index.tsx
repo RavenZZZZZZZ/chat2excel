@@ -57,6 +57,9 @@ const DesignTest = lazy(() => import('@/views/DesignTest'));
  * 导入新的单页工作流组件 (v2) - 不使用懒加载
  */
 import { AppWorkflow } from '@/components/workflow/AppWorkflow';
+import { OCRWorkflow } from '@/components/workflow/tools/OCRWorkflow';
+import { ToolLayout } from '@/components/layout/ToolLayout';
+import { toolRegistry } from '@/lib/tool-registry';
 
 /**
  * 创建路由器
@@ -67,7 +70,8 @@ import { AppWorkflow } from '@/components/workflow/AppWorkflow';
  * - Suspense: 显示加载状态
  *
  * 路由说明:
- * - /: 新的单页工作流应用 (v2, 零页面跳转)
+ * - /: 新的可折叠工作流 (v3, Accordion 模式)
+ * - /v2: v2 版本工作流 (备份)
  * - /legacy: 旧版首页 (备份)
  * - /legacy/recognizing: 旧版识别页 (备份)
  * - /legacy/editing: 旧版编辑页 (备份)
@@ -75,6 +79,14 @@ import { AppWorkflow } from '@/components/workflow/AppWorkflow';
 const router = createBrowserRouter([
   {
     path: '/',
+    element: (
+      <ToolLayout tool={toolRegistry.get('ocr-table')!}>
+        <OCRWorkflow />
+      </ToolLayout>
+    ),
+  },
+  {
+    path: '/v2',
     element: <AppWorkflow />,
   },
   // 旧页面备份 (通过 /legacy 访问)
