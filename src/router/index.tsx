@@ -33,12 +33,21 @@ import { toolRegistry } from '@/lib/tool-registry';
  * 创建路由器
  *
  * 路由说明:
- * - /: OCR 表格识别工具 (新的可折叠工作流界面)
+ * - /: 欢迎首页
+ * - /tools/ocr-table: OCR 表格识别工具 (新的可折叠工作流界面)
  * - /help: 帮助页面
  */
 const router = createBrowserRouter([
   {
     path: '/',
+    element: (
+      <ToolLayout tool={toolRegistry.get('ocr-table')!}>
+        <OCRWorkflow />
+      </ToolLayout>
+    ),
+  },
+  {
+    path: '/tools/ocr-table',
     element: (
       <ToolLayout tool={toolRegistry.get('ocr-table')!}>
         <OCRWorkflow />
