@@ -70,7 +70,7 @@ export function Sidebar() {
         {/* Logo */}
         <div className="h-14 flex items-center px-4 border-b border-gray-200 dark:border-gray-800">
           <div className="w-8 h-8 bg-[#D4A27F] rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">C2E</span>
+            <span className="text-white font-bold text-sm">YR</span>
           </div>
           {isExpanded && (
             <motion.span
@@ -215,7 +215,7 @@ export function Sidebar() {
                             border-b border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#D4A27F] rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">C2E</span>
+                    <span className="text-white font-bold text-sm">YR</span>
                   </div>
                   <span className="font-semibold text-[#0E0E0E] dark:text-[#FDFDF7]">
                     Chat2Excel
