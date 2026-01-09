@@ -2,5 +2,15 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "nodejs20.x",
+      "region": "hkg1"
+    },
+    "api/**/*.js": {
+      "runtime": "nodejs20.x",
+      "region": "hkg1"
+    }
+  }
 }
