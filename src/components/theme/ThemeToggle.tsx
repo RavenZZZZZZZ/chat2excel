@@ -42,7 +42,7 @@ export function ThemeToggle() {
         aria-label={t('theme.toggle')}
         type="button"
       >
-        <div className="w-5 h-5" />
+        <Sun className="w-5 h-5 text-gray-700 dark:text-gray-300" />
       </button>
     );
   }
@@ -59,7 +59,7 @@ export function ThemeToggle() {
     >
       {/* 太阳图标（亮色模式显示） */}
       <Sun
-        className={`w-5 h-5 transition-all duration-300 ${
+        className={`w-5 h-5 text-gray-700 dark:text-gray-300 transition-all duration-300 ${
           isDark
             ? 'opacity-0 rotate-90 scale-0 absolute'
             : 'opacity-100 rotate-0 scale-100'
@@ -68,7 +68,7 @@ export function ThemeToggle() {
 
       {/* 月亮图标（暗色模式显示） */}
       <Moon
-        className={`w-5 h-5 transition-all duration-300 ${
+        className={`w-5 h-5 text-gray-700 dark:text-gray-300 transition-all duration-300 ${
           isDark
             ? 'opacity-100 rotate-0 scale-100'
             : 'opacity-0 -rotate-90 scale-0 absolute'
