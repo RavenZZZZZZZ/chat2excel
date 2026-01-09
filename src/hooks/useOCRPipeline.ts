@@ -42,15 +42,22 @@ export function useOCRPipeline(
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
+    console.log('[useOCRPipeline] Hook 触发');
+    console.log('[useOCRPipeline] files.length:', files.length);
+    console.log('[useOCRPipeline] hasStartedRef.current:', hasStartedRef.current);
+
     if (hasStartedRef.current || files.length === 0) {
+      console.log('[useOCRPipeline] 跳过启动 (已启动或无文件)');
       return;
     }
 
     hasStartedRef.current = true;
+    console.log('[useOCRPipeline] 设置 hasStartedRef.current = true, 开始 OCR...');
 
     const startOCR = async () => {
       try {
-        console.log(`Starting OCR for ${files.length} files`);
+        console.log(`[useOCRPipeline] Starting OCR for ${files.length} files`);
+        console.log('[useOCRPipeline] 文件列表:', files.map(f => f.name));
 
         // 调用 OCR 服务批量识别
         const results = await ocrService.recognizeBatch(files, (updatedTask) => {

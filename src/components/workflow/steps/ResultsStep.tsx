@@ -120,10 +120,32 @@ export function ResultsStep({
     onDataChange?.(currentResultIndex, newData);
   };
 
+  // 验证数据格式
+  let tableData: any[][];
   if (!currentResult?.data) {
     return (
       <div className="text-center py-12">
         <p className="text-[#6B6B6B] dark:text-[#9CA3AF]">暂无数据</p>
+      </div>
+    );
+  }
+
+  if (!Array.isArray(currentResult.data)) {
+    console.error('[ResultsStep] 数据格式错误,期望二维数组,实际:', currentResult.data);
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">数据格式错误</p>
+      </div>
+    );
+  }
+
+  tableData = currentResult.data;
+
+  // 检查是否为空数据
+  if (tableData.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-[#6B6B6B] dark:text-[#9CA3AF]">表格数据为空</p>
       </div>
     );
   }
@@ -285,7 +307,7 @@ export function ResultsStep({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  {currentResult.data[0]?.map((header, i) => (
+                  {tableData[0]?.map((header, i) => (
                     <th key={i} className="px-4 py-2 text-left font-medium
                                          text-[#0E0E0E] dark:text-[#FDFDF7]">
                       {header}
@@ -294,7 +316,7 @@ export function ResultsStep({
                 </tr>
               </thead>
               <tbody>
-                {currentResult.data.slice(1).map((row, i) => (
+                {tableData.slice(1).map((row, i) => (
                   <tr key={i} className="border-b border-gray-100 dark:border-gray-800
                                    hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     {row.map((cell, j) => (

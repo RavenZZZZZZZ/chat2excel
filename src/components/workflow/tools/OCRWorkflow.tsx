@@ -97,11 +97,24 @@ export function OCRWorkflow() {
     updateOcrTask,
     (newResults) => {
       // 转换为 TableResult 格式
-      const tableResults: TableResult[] = newResults.map((result, index) => ({
-        id: `result-${index}-${Date.now()}`,
-        data: result.data || [],
-        confidence: result.confidence,
-      }));
+      const tableResults: TableResult[] = newResults.map((result, index) => {
+        // 将 TableData 转换为二维数组格式
+        let tableData: any[][] = [];
+
+        if (result.data && result.data.rows) {
+          // 从 TableData 格式转换为二维数组
+          tableData = result.data.rows.map(row =>
+            row.cells.map(cell => cell.value)
+          );
+          log.info(`转换表格数据: ${tableData.length} 行, ${tableData[0]?.length || 0} 列`);
+        }
+
+        return {
+          id: `result-${index}-${Date.now()}`,
+          data: tableData,
+          confidence: result.confidence,
+        };
+      });
       setResults(tableResults);
 
       // 生成原图 URL
@@ -125,12 +138,19 @@ export function OCRWorkflow() {
       return;
     }
 
-    log.info('手动启动 OCR 处理');
+    log.info('=== 手动启动 OCR 处理 ===');
+    log.info('文件数量:', files.length);
+    log.info('文件列表:', files.map(f => f.name));
+
     shouldStartOCR.current = true;
     setIsOCRProcessing(true);
 
     // 初始化任务状态
-    setOcrTasks(initializeTasks(files));
+    const tasks = initializeTasks(files);
+    log.info('初始化任务:', tasks);
+    setOcrTasks(tasks);
+
+    log.info('设置 shouldStartOCR.current = true, 等待 useOCRPipeline 启动...');
 
     // 强制重新渲染以触发 useOCRPipeline
     setExpandedSteps(prev => new Set([...prev, 'processing']));
@@ -207,6 +227,7 @@ export function OCRWorkflow() {
         <UploadStep
           files={files}
           onFilesSelected={(newFiles) => {
+            log.info('文件已选择:', newFiles.map(f => f.name));
             setFiles(newFiles);
             // 初始化 OCR 任务
             setOcrTasks(initializeTasks(newFiles));
@@ -215,6 +236,16 @@ export function OCRWorkflow() {
             setOriginalImages([]);
             setIsOCRProcessing(false);
             shouldStartOCR.current = false;
+
+            // 自动开始 OCR
+            if (newFiles.length > 0) {
+              log.info('自动开始 OCR 处理...');
+              // 使用 setTimeout 确保 state 更新完成
+              setTimeout(() => {
+                shouldStartOCR.current = true;
+                setIsOCRProcessing(true);
+              }, 100);
+            }
           }}
           onRemove={(index) => {
             const newFiles = files.filter((_, i) => i !== index);
