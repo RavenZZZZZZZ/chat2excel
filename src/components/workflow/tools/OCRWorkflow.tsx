@@ -24,6 +24,8 @@ import { ProcessingStep, ProcessingTask } from '../steps/ProcessingStep';
 import { ResultsStep, TableResult } from '../steps/ResultsStep';
 import { useOCRPipeline } from '@/hooks/useOCRPipeline';
 import { createLogger } from '@/lib/logger';
+import { excelExporter } from '@/services/export/excelExporter';
+import type { TableData, Row } from '@/types/recognition';
 
 const log = createLogger('OCRWorkflow');
 
@@ -344,9 +346,33 @@ export function OCRWorkflow() {
             const result = results[index];
             log.info('导出结果:', result.id);
 
-            // TODO: 实现导出逻辑
-            // 这里需要调用实际的导出功能
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            try {
+              // 将二维数组数据转换回 TableData 格式
+              const rows: Row[] = result.data.map(row => ({
+                cells: row.map(cellValue => ({
+                  value: String(cellValue || ''),
+                })),
+              }));
+
+              const tableData: TableData = { rows };
+
+              // 生成文件名 (使用时间戳)
+              const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+              const fileName = `table-${timestamp}`;
+
+              log.info('开始导出 Excel:', {
+                rows: tableData.rows.length,
+                fileName,
+              });
+
+              // 调用导出功能
+              await excelExporter.export(tableData, { fileName });
+
+              log.info('导出成功');
+            } catch (error) {
+              log.error('导出失败:', error);
+              throw error;
+            }
           }}
           onDataChange={(index, newData) => {
             setResults(prev => {
