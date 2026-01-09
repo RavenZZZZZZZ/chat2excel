@@ -14,48 +14,97 @@ import { useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
+/**
+ * 安全地从 localStorage 读取主题
+ */
+function getStoredTheme(): Theme {
+  if (typeof window === 'undefined') return 'system';
+
+  try {
+    const stored = localStorage.getItem('chat2excel-theme');
+    if (stored === 'light' || stored === 'dark' || stored === 'system') {
+      return stored;
+    }
+  } catch (error) {
+    console.warn('无法读取 localStorage:', error);
+  }
+
+  return 'system';
+}
+
+/**
+ * 安全地保存主题到 localStorage
+ */
+function saveTheme(theme: Theme) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    localStorage.setItem('chat2excel-theme', theme);
+  } catch (error) {
+    console.warn('无法写入 localStorage:', error);
+  }
+}
+
+/**
+ * 获取实际的主题（解析 system）
+ */
+function getResolvedTheme(theme: Theme): 'light' | 'dark' {
+  if (theme !== 'system') return theme;
+
+  if (typeof window === 'undefined') return 'light';
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+/**
+ * 应用主题到 DOM
+ */
+function applyTheme(theme: 'light' | 'dark') {
+  if (typeof window === 'undefined') return;
+
+  const root = document.documentElement;
+
+  if (theme === 'dark') {
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('dark');
+  }
+}
+
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>(getStoredTheme);
   const [mounted, setMounted] = useState(false);
 
-  // 初始化：从 localStorage 读取主题设置
+  // 初始化：标记组件已挂载
   useEffect(() => {
-    const storedTheme = localStorage.getItem('chat2excel-theme') as Theme | null;
-    if (storedTheme) {
-      setThemeState(storedTheme);
-    }
     setMounted(true);
+
+    // 初始应用主题
+    const resolvedTheme = getResolvedTheme(theme);
+    applyTheme(resolvedTheme);
   }, []);
 
-  // 应用主题到 DOM
+  // 当主题改变时，应用到 DOM
   useEffect(() => {
     if (!mounted) return;
 
-    const root = document.documentElement;
-    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-    if (isDark) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    const resolvedTheme = getResolvedTheme(theme);
+    applyTheme(resolvedTheme);
   }, [theme, mounted]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('chat2excel-theme', newTheme);
+    saveTheme(newTheme);
   };
 
-  // 获取实际的主题（解析 system）
-  const resolvedTheme = theme === 'system'
-    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : theme;
+  const resolvedTheme = getResolvedTheme(theme);
+  const isDark = resolvedTheme === 'dark';
 
   return {
     theme,
     setTheme,
     resolvedTheme,
-    isDark: resolvedTheme === 'dark',
+    isDark,
     mounted,
   };
 }
