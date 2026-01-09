@@ -20,6 +20,7 @@ import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { ToolConfig } from '@/lib/tool-registry';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 /**
  * 工具布局容器属性
@@ -61,9 +62,9 @@ export function ToolLayout({ tool, children, className }: ToolLayoutProps) {
         <header className="sticky top-0 z-30 h-14
                         bg-white/80 dark:bg-[#0E0E0E]/80
                         backdrop-blur border-b border-gray-200 dark:border-gray-800
-                        flex items-center px-4 sm:px-6">
+                        flex items-center justify-between px-4 sm:px-6">
+          {/* 面包屑导航 */}
           <div className="flex items-center gap-2 text-sm overflow-hidden">
-            {/* 面包屑导航 */}
             <span className="text-[#6B6B6B] dark:text-[#9CA3AF] whitespace-nowrap">
               工具
             </span>
@@ -80,6 +81,9 @@ export function ToolLayout({ tool, children, className }: ToolLayoutProps) {
               {tool.name}
             </span>
           </div>
+
+          {/* 主题切换按钮 */}
+          <ThemeToggle />
         </header>
 
         {/* 工具内容区域 */}

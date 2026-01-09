@@ -105,7 +105,7 @@ export function Sidebar() {
    */
   const isCategoryActive = (categoryId: string): boolean => {
     const tools = toolRegistry.getByCategory(categoryId);
-    return tools.some((tool) => tool.path === location.pathname);
+    return tools.some((tool: any) => tool.path === location.pathname);
   };
 
   /**
@@ -212,8 +212,8 @@ export function Sidebar() {
 
           {/* 即将推出的工具 (敬请期待) */}
           {categories
-            .filter(cat => !hasAvailableTools(cat.id))
-            .map(category => (
+            .filter((cat: ToolCategory) => !hasAvailableTools(cat.id))
+            .map((category: ToolCategory) => (
               <ComingSoonTooltip key={category.id} isExpanded={isExpanded}>
                 <div
                   className={cn(
@@ -360,8 +360,8 @@ export function Sidebar() {
 
                 {/* 已激活的工具 */}
                 {categories
-                  .filter(cat => hasAvailableTools(cat.id))
-                  .map(category => {
+                  .filter((cat: ToolCategory) => hasAvailableTools(cat.id))
+                  .map((category: ToolCategory) => {
                     const isActive = isCategoryActive(category.id);
                     const path = getCategoryPath(category.id);
 
@@ -390,8 +390,8 @@ export function Sidebar() {
 
                 {/* 即将推出的工具 */}
                 {categories
-                  .filter(cat => !hasAvailableTools(cat.id))
-                  .map(category => (
+                  .filter((cat: ToolCategory) => !hasAvailableTools(cat.id))
+                  .map((category: ToolCategory) => (
                     <div
                       key={category.id}
                       className={cn(
@@ -425,7 +425,7 @@ export function Sidebar() {
                   <div className="flex items-center justify-between">
                     <span>即将推出</span>
                     <span className="font-semibold">
-                      {categories.filter(cat => !hasAvailableTools(cat.id)).length}
+                      {categories.filter((cat: ToolCategory) => !hasAvailableTools(cat.id)).length}
                     </span>
                   </div>
                 </div>
