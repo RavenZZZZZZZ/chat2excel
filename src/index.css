@@ -4,8 +4,16 @@
 
 @import "tailwindcss";
 
+/* ==============================================================================
+ * Tailwind v4 暗色模式配置
+ * ============================================================================== */
+
+/* 定义 dark 变体 - 使用 class 策略 */
+@variant dark (&:where(.dark, .dark *));
+
 /* Tailwind v4 自定义配置 */
 @theme {
+
   /* 颜色系统 */
   --color-primary: #3B82F6;
   --color-primary-foreground: #FFFFFF;
@@ -133,3 +141,60 @@ svg {
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* ==============================================================================
+ * 手动定义暗色模式样式（Tailwind v4 兼容性修复）
+ * ============================================================================== */
+
+/* 当 html 元素有 dark class 时应用的样式 */
+.dark {
+  color-scheme: dark;
+}
+
+/* 暗色模式背景色 */
+.dark .bg-white\/80 {
+  background-color: rgb(14, 14, 14 / 0.8) !important;
+}
+
+.dark .bg-white {
+  background-color: #0E0E0E !important;
+}
+
+.dark .bg-\[\#FDFDF7\] {
+  background-color: #09090B !important;
+}
+
+/* 暗色模式文字色 */
+.dark .text-gray-700 {
+  color: #FDFDF7 !important;
+}
+
+.dark .text-gray-600 {
+  color: #9CA3AF !important;
+}
+
+.dark .text-gray-400 {
+  color: #6B7280 !important;
+}
+
+.dark .text-\[\#0E0E0E\] {
+  color: #FDFDF7 !important;
+}
+
+.dark .text-\[\#6B6B6B\] {
+  color: #9CA3AF !important;
+}
+
+.dark .text-\[\#FDFDF7\] {
+  color: #0E0E0E !important;
+}
+
+/* 暗色模式边框色 */
+.dark .border-gray-200 {
+  border-color: rgb(31, 41, 55) !important;
+}
+
+.dark .border-gray-800 {
+  border-color: rgb(55, 65, 81) !important;
+}
+
