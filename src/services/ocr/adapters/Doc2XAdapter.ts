@@ -245,6 +245,9 @@ export class Doc2XAdapter {
   ): Promise<Doc2XResponse['data']> {
     const { maxAttempts, pollInterval, timeout } = Doc2XAdapter.POLL_CONFIG;
 
+    // 设置初始进度
+    onProgress?.(30);
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         // 请求状态
@@ -257,6 +260,10 @@ export class Doc2XAdapter {
         this.checkResponseSuccess(response.data);
 
         const data = response.data.data;
+
+        // 更新进度 (每次轮询都显示一些进度,表示正在处理)
+        const pollProgress = Math.min(30 + (attempt + 1) * 5, 95);
+        onProgress?.(pollProgress);
         if (!data) {
           throw new Error('API 返回数据为空');
         }
