@@ -39,6 +39,13 @@ export default {
       help: 'Help',
     },
 
+    // ==================== Theme ====================
+    theme: {
+      toggle: 'Toggle theme',
+      light: 'Light mode',
+      dark: 'Dark mode',
+    },
+
     // ==================== Home ====================
     home: {
       title: 'Chat2Excel - Table OCR Recognition',

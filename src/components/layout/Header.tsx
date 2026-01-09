@@ -17,6 +17,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export function Header() {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ export function Header() {
             </h1>
           </div>
 
-          {/* 右侧：导航菜单 + 语言切换 */}
+          {/* 右侧：导航菜单 + 语言切换 + 主题切换 */}
           <nav className="flex items-center space-x-6">
             <a href="/" className="text-gray-700 hover:text-primary transition-colors">
               {t('nav.home')}
@@ -41,6 +42,7 @@ export function Header() {
               {t('nav.help')}
             </a>
             <LanguageSwitcher />
+            <ThemeToggle />
           </nav>
         </div>
       </div>
