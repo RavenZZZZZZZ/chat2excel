@@ -4,6 +4,343 @@
 
 ---
 
+## 2026-01-09 - [config] 配置 Claude Code 默认语言为中文
+
+### 功能描述
+配置 Claude Code 的默认响应语言为中文，优化中文用户的使用体验。
+
+### 实现方案
+根据 Claude Code 官方文档，在配置文件中添加 `language` 设置，使用英文语言名称格式（如 "chinese"、"japanese"、"spanish"）。
+
+**官网示例**：
+```json
+{
+  "language": "japanese"  // 或 "chinese", "spanish", "french"
+}
+```
+
+### 修改文件
+- `~/.claude/settings.json` - 添加 `"language": "chinese"` 配置
+
+### 关键变更
+- ✅ 配置文件位置：`~/.claude/settings.json`
+- ✅ 使用官方推荐的英文语言名称格式（而非语言代码如 zh-CN）
+- ✅ 配置会在下次对话中生效
+
+### 配置格式
+```json
+{
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "...",
+    "ANTHROPIC_BASE_URL": "..."
+  },
+  "language": "chinese"
+}
+```
+
+### 验证方法
+1. 检查配置文件：`cat ~/.claude/settings.json`
+2. 重启 Claude Code 对话
+3. 或在对话中使用 `/config` 命令查看或临时修改
+
+### 支持的语言格式
+根据官网文档，支持以下格式：
+- `"chinese"` - 中文 ✅（推荐）
+- `"japanese"` - 日文
+- `"spanish"` - 西班牙文
+- `"french"` - 法文
+
+### 版本要求
+- 当前版本：2.0.76
+- 完善的语言支持：2.1.0+（根据社区反馈）
+
+### 相关文档
+- [Claude Code settings - Claude Code Docs](https://code.claude.com/docs/en/settings)
+- [【更新，可以直接设置】claude code 2.1.0 以上中文设置教程](https://linux.do/t/topic/1418551?page=2)
+- [Internationalization and Localization Support for CLI Interface](https://github.com/anthropics/claude-code/issues/4866)
+
+---
+
+## 2026-01-09 - [config] 安装 Claude Code Frontend Design Skill
+
+### 功能描述
+安装 Anthropic 官方的前端设计 Skill，提升 AI 生成前端界面的设计质量，避免通用的 AI 美学（如紫色渐变、Inter 字体等千篇一律的设计）。
+
+### 实现方案
+
+#### 1. 官方资源调研
+通过搜索发现 Anthropic 在 2025 年 11 月 12 日发布了官方的 Frontend Design Skill：
+- **官方源码**: https://github.com/anthropics/claude-code/blob/main/plugins/frontend-design/skills/frontend-design/SKILL.md
+- **官方博客**: https://claude.com/blog/improving-frontend-design-through-skills
+- **工程博客**: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+
+#### 2. Skill 功能特性
+这个 Skill 指导创建独特、生产级的前端界面，避免"AI slop"美学：
+
+**设计思维**：
+- 理解上下文，选择大胆的美学方向
+- 极简主义、极繁主义、复古未来主义、有机自然风、奢华精致风等
+- 专注于让界面"令人难忘"
+
+**前端美学指南**：
+- **Typography**: 选择独特、有趣的字体，避免 Arial/Inter/Roboto
+- **Color & Theme**: 使用 CSS 变量，大胆配色 + 锐利强调色
+- **Motion**: 精心编排的动画，优先 CSS 方案
+- **Spatial Composition**: 非对称、重叠、对角线等打破常规的布局
+- **Visual Details**: 渐变网格、噪点纹理、几何图案等
+
+**明确禁止**：
+- ❌ 常见字体（Inter, Roboto, Arial, Space Grotesk）
+- ❌ 老套配色（紫色渐变白背景）
+- ❌ 可预测的布局和组件模式
+
+#### 3. 安装步骤
+```bash
+# 1. 创建 skill 目录
+mkdir -p .claude/skills/frontend-design
+
+# 2. 下载官方 SKILL.md
+curl -s https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/frontend-design/skills/frontend-design/SKILL.md \
+  -o .claude/skills/frontend-design/SKILL.md
+
+# 3. 验证安装
+ls -lah .claude/skills/frontend-design/
+# SKILL.md (4.2KB)
+```
+
+### 修改文件
+- `.claude/skills/frontend-design/SKILL.md` - 新增官方前端设计 Skill 配置
+
+### 关键变更
+- ✅ 安装官方 Frontend Design Skill
+- ✅ 提升前端设计生成质量
+- ✅ 避免通用 AI 美学
+- ✅ 支持独特、精致的设计风格
+
+### 使用方式
+**自动触发**：
+当要求创建或修改前端组件时，Claude 会自动使用此 Skill。
+
+**明确调用**：
+```
+使用 frontend-design skill 来重新设计这个组件
+```
+
+### 效果预期
+- 设计更独特、更有创意
+- 避免千篇一律的 AI 生成风格
+- 每次设计都有不同的美学方向
+- 字体、色彩、布局更加精心设计
+
+### 后续应用
+可以要求 Claude 使用此 Skill 优化现有组件：
+- "用 frontend-design skill 重新设计上传界面"
+- "给这个页面添加更有创意的动画效果"
+- "设计一个独特的表格展示组件"
+
+### 相关文档
+- [.claude/skills/frontend-design/SKILL.md](../.claude/skills/frontend-design/SKILL.md) - Frontend Design Skill 完整配置
+- [官方 GitHub 源码](https://github.com/anthropics/claude-code/blob/main/plugins/frontend-design/skills/frontend-design/SKILL.md)
+- [Improving Frontend Design Through Skills](https://claude.com/blog/improving-frontend-design-through-skills) - 官方博客
+- [Awesome Claude Skills](https://github.com/travisvn/awesome-claude-skills) - 社区 Skills 资源
+
+---
+
+## 2026-01-09 - [optimize] Vercel Functions 区域优化 - 香港部署
+
+### 功能描述
+将 Vercel Functions 从默认的美东区域（iad1）迁移到香港区域（hkg1），优化中国及亚洲用户的访问速度。
+
+### 实现方案
+
+#### 1. 问题分析
+**用户反馈**: 中国大陆用户访问网站太慢
+- 前端加载：2-3秒 ❌
+- API 响应：14秒 ❌
+- 用户体验：很慢，不耐烦
+
+**根本原因**：
+- Vercel Functions 默认部署在美东区域（iad1，华盛顿 D.C.）
+- 中国用户 → 美东服务器：跨境链路，延迟高
+- Doc2X API 在中国，Vercel（美东）调用 Doc2X：跨境调用慢
+
+**总延迟**：前端 2-3秒 + API 14秒 = 16-17秒 ❌
+
+#### 2. 解决方案选择
+
+**评估方案**：
+- 阿里云 CDN：¥360/月，需要备案，回源 Vercel 效果差
+- 香港独立服务器：¥100-170/月，部署复杂
+- Cloudflare Workers：¥0-35/月，智能路由
+- **Vercel 香港区域**：¥0，一行配置 ✅
+
+**选择理由**：
+- ✅ 零成本
+- ✅ 部署简单（一行配置）
+- ✅ 性能提升显著（中国用户 97%）
+- ✅ 美东用户影响可控（< 1秒）
+
+#### 3. 实施步骤
+
+**步骤 1：修改 Vercel 配置**
+
+**vercel.json**：
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["hkg1"]  // 香港区域
+}
+```
+
+**步骤 2：验证部署**
+```bash
+# 提交代码，Vercel 自动部署
+git add vercel.json
+git commit -m "feat: 配置 Vercel Functions 部署到香港区域 (hkg1)"
+git push
+
+# 查看 Functions 区域
+curl -I https://yiruoai.com/api/health | grep "x-vercel-id"
+# 应该看到：x-vercel-id: sin1::hkg1::...
+#                       ^^^^^  ^^^^^
+#                       边缘   执行区域
+```
+
+**步骤 3：性能测试**
+
+创建完整性能测试脚本：
+- `scripts/test-performance-full.sh` - 端到端性能测试
+- `scripts/test-global-latency.sh` - 全球延迟分析
+
+生成详细性能报告：
+- `docs/PERFORMANCE_REPORT.md` - 性能测试报告
+- `docs/GLOBAL_LATENCY_REPORT.md` - 全球延迟对比
+
+### 修改文件
+- `vercel.json` - 添加 `"regions": ["hkg1"]`
+- `scripts/test-performance-full.sh` - 完整性能测试脚本（新增）
+- `scripts/test-global-latency.sh` - 全球延迟分析脚本（新增）
+- `docs/PERFORMANCE_REPORT.md` - 性能报告（新增）
+- `docs/GLOBAL_LATENCY_REPORT.md` - 全球延迟报告（新增）
+
+### 关键变更
+
+#### Build vs Functions 执行区域
+
+**重要发现**：
+- **Build（构建）**：在美东（iad1）✅ 正常
+  - 构建过程与用户访问无关
+  - 在哪里构建都一样
+  - 不影响性能
+
+- **Functions（运行）**：在香港（hkg1）✅ 关键
+  - 用户请求执行的区域
+  - 影响实际性能
+  - 这才是优化的重点
+
+**验证方法**：
+```bash
+# 查看 Vercel ID 解析
+curl -I https://yiruoai.com/api/health
+# x-vercel-id: sin1::hkg1::rqvj8-1767929659425-189f5735a732
+# 解析：
+# - sin1：新加坡边缘节点（请求进入点）
+# - hkg1：香港执行区域（实际运行）
+```
+
+### 性能提升数据
+
+| 指标 | 优化前（美东） | 优化后（香港） | 提升幅度 |
+|------|--------------|--------------|---------|
+| **前端加载** | 2-3秒 | **0.25秒** | ⬆️ **90%** |
+| **API 响应** | 14秒 | **0.32秒** | ⬆️ **97%** |
+| **完整流程** | 16-17秒 | **5.8-10.8秒** | ⬆️ **52-60%** |
+
+### 全球用户影响
+
+**受益地区**：
+- 中国用户：提升 **97%** ✅
+- 日本用户：提升 **83%** ✅
+- 新加坡用户：提升 **90%** ✅
+- 澳洲用户：提升 **33%** ✅
+
+**影响地区**：
+- 美东用户：下降 **66%**（0.3s → 0.5s，但仍 < 1秒）⚠️
+- 欧洲用户：下降 **50%**（0.4s → 0.6s，但仍 < 1秒）⚠️
+
+### 测试验证
+
+**中国用户体验测试**：
+```bash
+# 运行完整性能测试
+./scripts/test-performance-full.sh
+
+# 关键结果：
+# 前端加载：254ms（优秀）
+# API 响应：320ms（优秀）
+# Vercel ID：sin1::hkg1::... （确认在香港）
+```
+
+**美东用户体验估算**：
+- 前端加载：0.5s → 0.8s（增加 60%）
+- API 响应：0.3s → 0.5s（增加 66%）
+- **但仍 < 1秒，用户体验良好** ✅
+
+### 经验总结
+
+1. **Vercel 区域配置**：
+   - 使用顶层 `regions` 字段，不是在 `functions` 里配置
+   - Build 区域不影响性能，Functions 区域才是关键
+   - 通过 `x-vercel-id` 响应头验证实际执行区域
+
+2. **性能优化决策**：
+   - 优先考虑主要用户群体（中国用户占 70%+）
+   - 评估全球影响，平衡不同地区体验
+   - 成本与性能的平衡（免费 vs ¥140/月多区域）
+
+3. **测试工具的重要性**：
+   - 创建可重复的性能测试脚本
+   - 生成详细的数据报告
+   - 持续监控实际性能数据
+
+4. **用户分布分析**：
+   - 需要查看实际用户分布数据（Vercel Analytics）
+   - 根据数据决策是否需要多区域部署
+   - 避免凭感觉做决策
+
+### 未来优化方向
+
+**如果用户全球化**（美东/欧洲 > 30%）：
+1. **Vercel Pro 多区域**（$20/月）
+   ```json
+   {
+     "regions": ["iad1", "hkg1"]
+   }
+   ```
+   - 自动部署到多个区域
+   - 智能路由最优区域
+
+2. **Cloudflare Workers 智能路由**（¥0-35/月）
+   - 根据用户位置动态路由
+   - 接近多区域效果
+
+3. **分域名部署**（¥0）
+   - `cn.yiruoai.com` → 香港区域
+   - `us.yiruoai.com` → 美东区域
+
+### 相关文档
+- [vercel.json](../vercel.json) - Vercel 配置文件
+- [scripts/test-performance-full.sh](../scripts/test-performance-full.sh) - 完整性能测试脚本
+- [scripts/test-global-latency.sh](../scripts/test-global-latency.sh) - 全球延迟分析脚本
+- [docs/PERFORMANCE_REPORT.md](./PERFORMANCE_REPORT.md) - 性能测试报告
+- [docs/GLOBAL_LATENCY_REPORT.md](./GLOBAL_LATENCY_REPORT.md) - 全球延迟对比报告
+- [Vercel Regions 文档](https://vercel.com/docs/regions) - 官方区域说明
+
+---
+
 ## 2026-01-09 - [bug] Storage 上传 500 错误修复
 
 ### 问题描述

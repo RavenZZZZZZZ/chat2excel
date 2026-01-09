@@ -23,15 +23,25 @@ import type { ApiError } from '@/types';
  *
  * 配置说明：
  * - baseURL: API 基础地址
- *   - 开发环境：从 VITE_API_BASE_URL 环境变量读取（默认 http://localhost:3000/api）
- *   - 生产环境：使用相对路径 /api（Vercel 自动路由到同域名的 /api）
+ *   - 开发环境：从 VITE_API_BASE_URL 环境变量读取（仅 localhost）
+ *   - 生产环境：使用相对路径 /api（自动使用当前域名）
  * - timeout: 请求超时时间（60秒，适合文件上传）
  * - headers: 默认请求头，设置为 JSON 格式
  */
+const getBaseURL = () => {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+  // 只在开发环境（localhost）使用指定的 API URL
+  if (apiBaseUrl && apiBaseUrl.includes('localhost')) {
+    return apiBaseUrl;
+  }
+  // 生产环境使用相对路径
+  return '/api';
+};
+
 const rawAxiosInstance = axios.create({
   // 开发环境：指向本地 Vite 开发服务器代理
-  // 生产环境：使用相对路径 /api（Vercel 自动路由到同域名的 /api）
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  // 生产环境：使用相对路径 /api（自动使用当前域名）
+  baseURL: getBaseURL(),
   timeout: 60000, // 60秒超时，适合文件上传
   headers: {
     'Content-Type': 'application/json',

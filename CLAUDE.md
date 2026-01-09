@@ -148,6 +148,31 @@ api: {
 - `stores/ocrTaskStore.ts` - OCR 任务状态
 - `app/api/ocr/upload/route.ts` - 上传 API 示例
 
+## Claude Code Skills
+
+项目已安装官方 Frontend Design Skill，用于提升前端设计质量：
+
+### Frontend Design Skill
+- **位置**: `.claude/skills/frontend-design/SKILL.md`
+- **功能**: 创建独特、生产级的前端界面，避免通用 AI 美学
+- **使用**: 当你要求创建或修改前端组件时，我会自动使用此 Skill
+- **特点**:
+  - 避免常见字体（Inter, Roboto, Arial）
+  - 避免老套配色（紫色渐变白背景）
+  - 选择大胆的美学方向和独特的视觉设计
+  - 精心设计的字体、色彩、动画和布局
+
+### 自定义命令
+- **`/finish`**: 功能完成收尾命令，自动更新开发日志和待办事项
+  - 位置: `.claude/commands/finish.md`
+  - 功能: 分析对话内容、更新 DEVELOPMENT_LOG.md、记录待办事项到 TODOLIST.md
+
+### Claude Code 全局配置
+- **语言设置**: 已配置为中文 (`language: "chinese"`)
+  - 配置文件: `~/.claude/settings.json`
+  - 使用 `/config` 命令可在对话中临时修改
+  - 默认使用中文响应，优化中文用户体验
+
 ## 语言偏好
 - 代码注释: 中文
 - 变量命名: 英文

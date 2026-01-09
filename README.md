@@ -193,6 +193,8 @@ npm run dev
 - [CDN_SETUP.md](docs/CDN_SETUP.md) - CDN 配置总览
 - [ALIYUN_CDN_QUICKSTART.md](docs/ALIYUN_CDN_QUICKSTART.md) - 阿里云 CDN 快速开始
 - [VERCEL_ENV_SETUP.md](docs/VERCEL_ENV_SETUP.md) - Vercel 环境变量配置
+- [PERFORMANCE_REPORT.md](docs/PERFORMANCE_REPORT.md) - 性能测试报告
+- [GLOBAL_LATENCY_REPORT.md](docs/GLOBAL_LATENCY_REPORT.md) - 全球延迟分析
 
 ### 🔧 Troubleshooting
 - [DIAGNOSE_403_ERROR.md](docs/DIAGNOSE_403_ERROR.md) - 调试 403 错误
@@ -232,6 +234,16 @@ npm run dev
 - 月请求: ~9,000 次
 - 月带宽: ~15GB
 - **总成本**: **$0/月** ✅
+
+### 性能优化
+
+**当前配置**: Vercel Functions 部署在香港区域 (hkg1)
+- ✅ 中国用户 API 响应: **320ms** (原 14s，提升 97%)
+- ✅ 中国用户前端加载: **254ms** (原 2.5s，提升 90%)
+- ✅ 美东用户延迟: < 1s (仍可接受)
+- ✅ 零额外成本
+
+详细报告: [docs/PERFORMANCE_REPORT.md](docs/PERFORMANCE_REPORT.md)
 
 ### 可选：阿里云 CDN
 

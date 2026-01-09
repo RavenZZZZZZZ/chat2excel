@@ -42,6 +42,18 @@
 - [ ] 考虑添加 CDN 加速 Supabase Storage 图片访问
 - [ ] 实现图片缩略图生成功能
 - [ ] 添加上传进度显示（前端 UX 优化）
+- [x] 安装 Claude Code Frontend Design Skill (已完成 - 2026-01-09)
+  - 提升前端设计质量，避免通用 AI 美学
+  - 位置：`.claude/skills/frontend-design/SKILL.md`
+- [x] 配置 Claude Code 默认语言为中文 (已完成 - 2026-01-09)
+  - 配置文件：`~/.claude/settings.json`
+  - 设置：`"language": "chinese"`
+  - 优化中文用户体验
+- [ ] 使用 Frontend Design Skill 重新设计上传界面
+- [ ] 使用 Frontend Design Skill 优化表格展示组件
+- [ ] 探索更多官方 Claude Code Skills
+  - 参考：https://github.com/anthropics/skills
+  - 参考：https://github.com/travisvn/awesome-claude-skills
 
 ---
-最后更新：2026-01-09 04:15
+最后更新：2026-01-09 13:20

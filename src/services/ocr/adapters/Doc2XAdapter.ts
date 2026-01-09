@@ -27,15 +27,22 @@ export class Doc2XAdapter {
 
   constructor() {
     // 指向新的后端 API 路径
-    // 开发环境：http://localhost:3000/api/ocr
-    // 生产环境：/api/ocr（相对路径，Vercel 自动路由）
-    this.baseURL = import.meta.env.VITE_API_BASE_URL
-      ? `${import.meta.env.VITE_API_BASE_URL}/ocr`
-      : '/api/ocr';
+    // 开发环境：使用 VITE_API_BASE_URL 环境变量
+    // 生产环境：/api/ocr（相对路径，自动使用当前域名）
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+    if (apiBaseUrl && apiBaseUrl.includes('localhost')) {
+      // 开发环境：使用指定的本地 API
+      this.baseURL = `${apiBaseUrl}/ocr`;
+    } else {
+      // 生产环境：使用相对路径（自动适配当前域名）
+      this.baseURL = '/api/ocr';
+    }
 
     this.timeout = parseInt(import.meta.env.VITE_DOC2X_TIMEOUT || '60000', 10);
 
     console.log('🔧 Doc2X 适配器初始化完成 (使用后端 API)');
+    console.log(`📍 Base URL: ${this.baseURL}`);
   }
 
   /**
