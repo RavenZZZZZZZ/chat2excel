@@ -42,7 +42,7 @@ const rawAxiosInstance = axios.create({
   // 开发环境：指向本地 Vite 开发服务器代理
   // 生产环境：使用相对路径 /api（自动使用当前域名）
   baseURL: getBaseURL(),
-  timeout: 60000, // 60秒超时，适合文件上传
+  timeout: 120000, // 120秒超时,适合大文件上传和处理
   headers: {
     'Content-Type': 'application/json',
   },

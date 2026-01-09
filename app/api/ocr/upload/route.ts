@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
 
     // 转发到 Doc2X API
     // 注意: Doc2X API 期望直接接收二进制数据,而不是 FormData
+    // 增加超时时间到 120 秒,以处理大文件或复杂图片
     const response = await axios.post(
       DOC2X_UPLOAD_ENDPOINT,
       buffer, // 直接发送 buffer
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
           'Authorization': `Bearer ${DOC2X_API_KEY}`,
           'Content-Type': file.type, // 使用文件的 MIME 类型
         },
-        timeout: 60000,
+        timeout: 120000, // 120 秒超时,适合大文件处理
         maxBodyLength: 7 * 1024 * 1024,
         maxContentLength: 7 * 1024 * 1024,
       }
@@ -99,6 +100,20 @@ export async function POST(request: NextRequest) {
       status: error.response?.status,
       data: error.response?.data,
     });
+
+    // 特殊处理网络超时错误
+    if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+      console.error('[OCR Upload] Request timeout - Doc2X API took too long to respond');
+      return NextResponse.json({
+        code: 'error',
+        error: '请求超时,图片处理时间过长。请尝试使用更小或更简单的图片。',
+        details: {
+          message: 'The request timed out waiting for Doc2X API response',
+          code: error.code,
+          suggestion: 'Try uploading a smaller image or an image with less complex content',
+        }
+      }, { status: 504, headers: corsHeaders(request) });
+    }
 
     if (error.response) {
       console.error('[OCR Upload] API error response:', error.response.data);

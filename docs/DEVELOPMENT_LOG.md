@@ -4,6 +4,213 @@
 
 ---
 
+## 2026-01-10 - [fix] 侧边栏重新设计与 OCR 进度条修复
+
+### 功能描述
+用户反馈两个核心问题：
+1. **侧边栏混乱**：显示多个工具按钮，但只有"表格 OCR"可用，其他工具显示"敬请期待"
+2. **进度条失效**：OCR 识别过程中进度条始终卡在 0%，无法实时显示处理进度
+
+### 实现方案
+
+#### 问题 1: 侧边栏重新设计
+**根本原因**：侧边栏为未来工具预留了位置，但用户不清楚哪些功能可用
+
+**设计方案**：
+- **可用工具**：显示完整的按钮和图标，可点击跳转
+- **即将推出**：显示"敬请期待"标签，带锁图标
+- **折叠模式**：鼠标悬停显示"敬请期待"提示
+- **分隔线**：在首页和工具之间添加视觉分隔
+
+**实现细节**：
+```typescript
+// 分类过滤：只显示有可用工具的分类
+{categories
+  .filter((cat: ToolCategory) => hasAvailableTools(cat.id))
+  .map((category: ToolCategory) => (
+    <Link key={category.id} to={getCategoryPath(category.id)}>
+      {/* 可用工具 - 完整按钮 */}
+    </Link>
+  ))}
+
+// 即将推出的工具
+{categories
+  .filter((cat: ToolCategory) => !hasAvailableTools(cat.id))
+  .map((category: ToolCategory) => (
+    <ComingSoonTooltip key={category.id} isExpanded={isExpanded}>
+      <div className="opacity-60 cursor-not-allowed">
+        <Lock className="w-3 h-3" />
+        <span>敬请期待</span>
+      </div>
+    </ComingSoonTooltip>
+  ))}
+```
+
+#### 问题 2: OCR 进度条类型不匹配
+**根本原因**：`OCRTask` (来自 OCR 服务) 和 `ProcessingTask` (UI 期望) 类型不匹配，导致进度更新无法传递
+
+**OCRTask 结构** (来自 OCR 服务)：
+```typescript
+{
+  file: File,
+  status: 'recognizing' | 'completed' | 'failed',
+  progress: number  // 0-100
+}
+```
+
+**ProcessingTask 结构** (UI 期望)：
+```typescript
+{
+  id: string,
+  name: string,
+  progress: number,
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+}
+```
+
+**修复方案**：
+在 `OCRWorkflow.tsx` 中重写 `updateOcrTask` 函数，正确映射两种类型：
+```typescript
+const updateOcrTask = (ocrTask: any) => {
+  setOcrTasks(prev => {
+    // 通过文件名匹配找到对应任务
+    const taskIndex = prev.findIndex(t => t.name === ocrTask.file.name);
+
+    // 映射状态
+    let status: ProcessingTask['status'] = 'pending';
+    switch (ocrTask.status) {
+      case 'recognizing': status = 'processing'; break;
+      case 'completed': status = 'completed'; break;
+      case 'failed': status = 'failed'; break;
+    }
+
+    // 更新任务
+    updatedTasks[taskIndex] = {
+      ...updatedTasks[taskIndex],
+      progress: ocrTask.progress,
+      status,
+    };
+
+    return updatedTasks;
+  });
+};
+```
+
+#### 问题 3: 路由缺失
+**症状**：点击侧边栏"OCR 识别"显示"页面未找到"
+
+**解决方案**：在 `router/index.tsx` 添加 `/tools/ocr-table` 路由
+```typescript
+{
+  path: '/tools/ocr-table',
+  element: (
+    <ToolLayout tool={toolRegistry.get('ocr-table')!}>
+      <OCRWorkflow />
+    </ToolLayout>
+  ),
+},
+```
+
+#### 问题 4: 构建配置冲突
+**症状**：Vite 构建前端时 TypeScript 编译报错
+```
+.next/dev/types/validator.ts(47,39): error TS2307: Cannot find module '../../../app/api/debug/routes/route.js'
+```
+
+**根本原因**：`tsconfig.json` 同时检查 Next.js (`.next`) 和 Vite (`src`) 代码，导致类型冲突
+
+**解决方案**：创建独立的 `tsconfig.vite.json`
+```json
+{
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "public", "app", "lib", ".next"]
+}
+```
+
+修改 `package.json` 构建脚本：
+```json
+{
+  "scripts": {
+    "build:vite": "vite build",  // 移除 "tsc -b &&"
+  }
+}
+```
+
+### 修改文件
+- `src/components/layout/Sidebar.tsx` - 重新设计侧边栏，区分可用工具和即将推出
+- `src/router/index.tsx` - 添加 `/tools/ocr-table` 路由
+- `src/components/workflow/tools/OCRWorkflow.tsx` - 重写 `updateOcrTask` 函数，修复类型映射
+- `tsconfig.vite.json` - 新建独立的 Vite TypeScript 配置
+- `package.json` - 移除 `tsc -b` 前置检查
+- `app/page.tsx` - 更新前端资源引用为最新构建文件
+- `DEPLOYMENT_CHECKLIST.md` - 新建部署验证清单
+
+### 关键变更
+- ✅ **侧边栏优化**：清晰区分可用工具和即将推出功能
+- ✅ **进度条修复**：正确映射 OCRTask → ProcessingTask，进度实时更新
+- ✅ **路由补全**：添加缺失的 `/tools/ocr-table` 路由
+- ✅ **构建修复**：解决 Vite 和 Next.js TypeScript 配置冲突
+- ✅ **前端重建**：使用最新代码重新构建前端并更新资源引用
+
+### 测试验证
+**侧边栏功能**：
+- ✅ 只显示"表格 OCR"工具可点击
+- ✅ 其他工具显示"敬请期待"，带锁图标
+- ✅ 折叠模式下鼠标悬停显示提示
+- ✅ 点击"表格 OCR"正确跳转到 `/tools/ocr-table`
+
+**进度条功能**：
+- ✅ 上传 2-3 张图片
+- ✅ 点击"开始识别"
+- ✅ 第一个文件进度条：0% → 30% → 50% → ... → 100%
+- ✅ 完成后显示绿色勾号 ✓
+- ✅ 第二个文件进度条开始转动
+- ✅ 依次处理所有文件
+
+**控制台日志示例**：
+```
+[OCRWorkflow] updateOcrTask 被调用: {file: File, status: 'recognizing', progress: 30}
+[OCRWorkflow] 更新任务 [0]: image1.jpg, 进度: 30%, 状态: processing
+[OCRWorkflow] updateOcrTask 被调用: {file: File, status: 'recognizing', progress: 50}
+[OCRWorkflow] 更新任务 [0]: image1.jpg, 进度: 50%, 状态: processing
+[OCRWorkflow] updateOcrTask 被调用: {file: File, status: 'completed', progress: 100}
+[OCRWorkflow] 更新任务 [0]: image1.jpg, 进度: 100%, 状态: completed
+```
+
+### 部署状态
+- **Git 提交**: `6e35b34` - "fix: 更新前端资源引用为最新构建的文件"
+- **Vercel 部署**: 等待配额重置（约 3 小时）
+- **验证清单**: [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md)
+
+### 经验总结
+
+1. **类型系统的重要性**：
+   - 服务层和 UI 层的类型不一致会导致严重的 bug
+   - 使用 TypeScript 时要确保类型定义准确
+   - 可以使用 `any` 作为临时过渡，但要添加注释说明
+
+2. **用户体验优化**：
+   - 明确区分可用功能和即将推出功能
+   - 使用视觉提示（锁图标、透明度）引导用户
+   - 折叠模式下的悬停提示提供额外信息
+
+3. **构建配置隔离**：
+   - Next.js 和 Vite 的 TypeScript 配置应该分离
+   - 使用独立的 `tsconfig.vite.json` 避免冲突
+   - `exclude` 字段很重要，避免检查不必要的目录
+
+4. **完整的调试流程**：
+   - 从症状出发，逐步定位根本原因
+   - 使用控制台日志验证修复效果
+   - 创建详细的部署验证清单
+
+### 相关文档
+- [DEPLOYMENT_CHECKLIST.md](../DEPLOYMENT_CHECKLIST.md) - 部署验证清单
+- [src/components/layout/Sidebar.tsx](../src/components/layout/Sidebar.tsx) - 侧边栏组件
+- [src/components/workflow/tools/OCRWorkflow.tsx](../src/components/workflow/tools/OCRWorkflow.tsx) - OCR 工作流组件
+
+---
+
 ## 2026-01-09 - [fix] 修复 OCR 结果渲染错误并实现自动识别
 
 ### 功能描述
