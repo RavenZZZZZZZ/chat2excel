@@ -63,16 +63,19 @@ export async function POST(request: NextRequest) {
     console.log('[OCR Upload] Forwarding to Doc2X API:', {
       url: DOC2X_UPLOAD_ENDPOINT,
       bufferSize: buffer.length,
+      fileName: file.name,
+      mimeType: file.type,
     });
 
     // 转发到 Doc2X API
+    // 注意: Doc2X API 期望直接接收二进制数据,而不是 FormData
     const response = await axios.post(
       DOC2X_UPLOAD_ENDPOINT,
-      buffer,
+      buffer, // 直接发送 buffer
       {
         headers: {
           'Authorization': `Bearer ${DOC2X_API_KEY}`,
-          'Content-Type': file.type,
+          'Content-Type': file.type, // 使用文件的 MIME 类型
         },
         timeout: 60000,
         maxBodyLength: 7 * 1024 * 1024,
@@ -90,6 +93,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('[OCR Upload] Upload failed:', error.message);
+    console.error('[OCR Upload] Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
 
     if (error.response) {
       console.error('[OCR Upload] API error response:', error.response.data);
@@ -101,7 +110,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       code: 'error',
-      error: error.message || 'Upload failed'
+      error: error.message || 'Upload failed',
+      details: {
+        message: error.message,
+        code: error.code,
+      }
     }, { status: 500, headers: corsHeaders(request) });
   }
 }
